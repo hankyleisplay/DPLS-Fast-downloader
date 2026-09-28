@@ -770,6 +770,94 @@
       opacity: 1;
       transform: scale(1);
     }
+
+    /* ========================================================
+       Liquid Glass Custom Checkbox (自製毛玻璃自定義勾選方塊)
+       ======================================================== */
+    input[type="checkbox"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      min-height: 18px;
+      border-radius: 5px;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
+      cursor: pointer;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      outline: none;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    input[type="checkbox"]:hover {
+      border-color: #58a6ff;
+      background: rgba(22, 27, 34, 0.85);
+      box-shadow: 0 0 10px rgba(88, 166, 255, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.3);
+      transform: scale(1.05);
+    }
+
+    input[type="checkbox"]:focus-visible {
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+    }
+
+    input[type="checkbox"]:checked {
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 12px rgba(14, 165, 233, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+      transform: scale(1);
+    }
+
+    input[type="checkbox"]::after {
+      content: "";
+      position: absolute;
+      width: 5px;
+      height: 9px;
+      border: solid #ffffff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg) scale(0);
+      margin-bottom: 2px;
+      transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    input[type="checkbox"]:checked::after {
+      transform: rotate(45deg) scale(1);
+    }
+
+    input[type="checkbox"]:active {
+      transform: scale(0.92);
+    }
+
+    .custom-checkbox-container {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(88, 166, 255, 0.05);
+      border: 1px solid rgba(88, 166, 255, 0.18);
+      transition: all 0.2s ease;
+      font-size: 0.88rem;
+      color: #58a6ff;
+      font-weight: 600;
+    }
+    .custom-checkbox-container:hover {
+      background: rgba(88, 166, 255, 0.12);
+      border-color: rgba(88, 166, 255, 0.38);
+    }
   </style>
 </head>
 <body>
@@ -886,7 +974,7 @@
         </div>
       </div>
       <div class="form-group" style="margin-top: 10px;">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <label class="custom-checkbox-container">
           <input type="checkbox" id="chkNewTaskScheduled" onchange="document.getElementById('newTaskScheduleBox').style.display = this.checked ? 'block' : 'none'">
           <span>⏰ 預約排程定時啟動 (Scheduled Start)</span>
         </label>
@@ -997,7 +1085,7 @@
       </div>
 
       <div class="form-group">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <label class="custom-checkbox-container">
           <input type="checkbox" id="chkBatchScheduled" onchange="document.getElementById('batchScheduleBox').style.display = this.checked ? 'block' : 'none'">
           <span>⏰ 預約排程定時開始 (全部批次任務)</span>
         </label>
