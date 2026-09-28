@@ -299,6 +299,18 @@
       border: 1px solid rgba(248, 81, 73, 0.4);
     }
 
+    .status-queued {
+      background: rgba(234, 179, 8, 0.2);
+      color: #eab308;
+      border: 1px solid rgba(234, 179, 8, 0.4);
+    }
+
+    .status-scheduled {
+      background: rgba(168, 85, 247, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
     /* Overall Progress Bar */
     .progress-bar-bg {
       height: 8px;
@@ -456,6 +468,150 @@
       margin-bottom: 1rem;
       opacity: 0.6;
     }
+
+    .queue-setting-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .queue-setting-pill select {
+      background: transparent;
+      border: none;
+      color: #58a6ff;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Batch Modal Tabs & Previews */
+    .batch-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+    .batch-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-sub);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .batch-tab.active {
+      background: rgba(88, 166, 255, 0.15);
+      border-color: rgba(88, 166, 255, 0.4);
+      color: #58a6ff;
+    }
+    .batch-preview-box {
+      background: #0d1117;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 10px;
+    }
+    .batch-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+    }
+    .batch-preview-list {
+      max-height: 120px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: #7ee787;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .btn-clear-mini {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+
+    /* Clipboard Toast */
+    .clipboard-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99999;
+      background: rgba(22, 27, 34, 0.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(88, 166, 255, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 14px 18px;
+      max-width: 420px;
+      animation: toast-slide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes toast-slide {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .toast-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .toast-icon {
+      font-size: 1.5rem;
+    }
+    .toast-body {
+      flex: 1;
+      overflow: hidden;
+    }
+    .toast-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #58a6ff;
+      margin-bottom: 2px;
+    }
+    .toast-url {
+      font-size: 0.76rem;
+      color: var(--text-sub);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: monospace;
+    }
+    .toast-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 0.8rem;
+    }
+    .btn-close-toast {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+    .btn-close-toast:hover {
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -478,6 +634,29 @@
     </div>
 
     <div class="header-actions">
+      <!-- Clipboard Monitor Toggle -->
+      <button class="btn-secondary" id="btnClipboardMonitor" onclick="toggleClipboardMonitor()" title="自動監聽系統剪貼簿下載連結">
+        <span id="clipboardIcon">📋</span> <span>監聽剪貼簿: <b id="clipboardStatusText" style="color: #34d399;">開啟</b></span>
+      </button>
+
+      <!-- Queue Concurrency Setting -->
+      <div class="queue-setting-pill" title="設定同時最大下載任務數">
+        <span>⚡ 並發佇列:</span>
+        <select id="selectMaxConcurrent" onchange="updateQueueConcurrency(this.value)">
+          <option value="1">1 個任務</option>
+          <option value="2">2 個任務</option>
+          <option value="3" selected>3 個任務</option>
+          <option value="5">5 個任務</option>
+          <option value="8">8 個任務</option>
+          <option value="10">10 個任務</option>
+        </select>
+      </div>
+
+      <!-- Batch Download Button -->
+      <button class="btn-secondary" onclick="openBatchModal()">
+        <span>📚</span> 批次連續下載
+      </button>
+
       <button class="btn-primary" onclick="openNewTaskModal()">
         <span>+</span> 新增下載任務
       </button>
@@ -548,6 +727,15 @@
           <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applySystemDir('music')">🎵 音樂</button>
         </div>
       </div>
+      <div class="form-group" style="margin-top: 10px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="chkNewTaskScheduled" onchange="document.getElementById('newTaskScheduleBox').style.display = this.checked ? 'block' : 'none'">
+          <span>⏰ 預約排程定時啟動 (Scheduled Start)</span>
+        </label>
+        <div id="newTaskScheduleBox" style="display: none; margin-top: 8px;">
+          <input type="datetime-local" id="inputNewTaskScheduledTime" class="form-control">
+        </div>
+      </div>
       <div id="modalProbeInfo" style="display: none; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px 14px; margin-top: 1rem; font-size: 0.82rem; justify-content: space-between; align-items: center;">
         <div>
           <span style="color: #8b949e;">資源大小: </span>
@@ -565,6 +753,124 @@
           <button class="btn-primary" onclick="submitNewTask(true)">🚀 開始傳輸</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Batch Download Modal -->
+  <div class="modal-overlay" id="batchTaskModal" style="display: none;">
+    <div class="modal-card" style="max-width: 650px;">
+      <h2>📚 批次連續下載與序號生成器</h2>
+      
+      <div class="batch-tabs">
+        <button type="button" class="batch-tab active" id="tabMultilineBtn" onclick="switchBatchTab('multiline')">📋 多行網址貼上</button>
+        <button type="button" class="batch-tab" id="tabPatternBtn" onclick="switchBatchTab('pattern')">⚡ 通配符序號生成器</button>
+      </div>
+
+      <!-- Tab 1: Multiline -->
+      <div id="batchTabMultiline">
+        <div class="form-group">
+          <label>請貼上多行下載網址 (每行一條 URL)</label>
+          <textarea id="batchUrlsInput" class="form-control" rows="5" placeholder="https://example.com/file1.zip&#10;https://example.com/file2.zip&#10;https://example.com/file3.zip" oninput="updateBatchPreview()"></textarea>
+        </div>
+      </div>
+
+      <!-- Tab 2: Pattern Generator -->
+      <div id="batchTabPattern" style="display: none;">
+        <div class="form-group">
+          <label>網址規則 (使用 [*] 或 [01-20] 作為序號替換標記)</label>
+          <input type="text" id="patternBaseUrl" class="form-control" placeholder="https://example.com/archive_[*].zip" value="https://example.com/file_[*].zip">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>起始編號</label>
+            <input type="number" id="patternStart" class="form-control" value="1" min="0">
+          </div>
+          <div class="form-group">
+            <label>結束編號</label>
+            <input type="number" id="patternEnd" class="form-control" value="10" min="1">
+          </div>
+          <div class="form-group">
+            <label>位數補零</label>
+            <select id="patternDigits" class="form-control">
+              <option value="1">不補零 (1, 2, ... 10)</option>
+              <option value="2" selected>2 位數 (01, 02, ... 10)</option>
+              <option value="3">3 位數 (001, 002, ... 010)</option>
+              <option value="4">4 位數 (0001, 0002...)</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" style="width: 100%; margin-bottom: 12px;" onclick="generatePatternUrls()">⚡ 展開並套用序號網址</button>
+      </div>
+
+      <div class="batch-preview-box">
+        <div class="batch-preview-header">
+          <span>待加入清單 (<b id="batchCountBadge">0</b> 條有效網址)</span>
+          <button type="button" class="btn-clear-mini" onclick="clearBatchUrls()">清空</button>
+        </div>
+        <div class="batch-preview-list" id="batchPreviewList">尚未輸入任何網址</div>
+      </div>
+
+      <div class="form-row" style="margin-top: 14px;">
+        <div class="form-group">
+          <label>併發線程 (每個任務)</label>
+          <select id="batchConnections" class="form-control">
+            <option value="4">4 線程</option>
+            <option value="8">8 線程</option>
+            <option value="16" selected>16 線程 (推薦)</option>
+            <option value="32">32 線程</option>
+            <option value="64">64 線程 (極速)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>同名衝突防護</label>
+          <select id="batchCollisionPolicy" class="form-control">
+            <option value="auto_rename" selected>自動重新命名 (檔案 (1).ext)</option>
+            <option value="overwrite">直接覆蓋舊檔案</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>儲存目標資料夾</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="batchOutputDir" class="form-control" placeholder="留空使用預設 Downloads 目錄" style="flex: 1;">
+          <button type="button" class="btn-secondary" style="white-space: nowrap;" onclick="browseBatchDir()">📂 瀏覽...</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="chkBatchScheduled" onchange="document.getElementById('batchScheduleBox').style.display = this.checked ? 'block' : 'none'">
+          <span>⏰ 預約排程定時開始 (全部批次任務)</span>
+        </label>
+        <div id="batchScheduleBox" style="display: none; margin-top: 8px;">
+          <input type="datetime-local" id="batchScheduledTime" class="form-control">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+        <button class="btn-secondary" onclick="closeBatchModal()">取消</button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" style="color: #d29922; border-color: rgba(210, 153, 34, 0.4);" onclick="submitBatchTasks(false)">⏳ 排入佇列</button>
+          <button class="btn-primary" onclick="submitBatchTasks(true)">🚀 立即啟動批次傳輸</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clipboard Floating Toast -->
+  <div class="clipboard-toast" id="clipboardToast" style="display: none;">
+    <div class="toast-content">
+      <div class="toast-icon">📋</div>
+      <div class="toast-body">
+        <div class="toast-title">偵測到剪貼簿下載連結</div>
+        <div class="toast-url" id="toastUrlText"></div>
+      </div>
+    </div>
+    <div class="toast-actions">
+      <button class="btn-primary btn-sm" onclick="downloadClipboardUrl(true)">🚀 立即下載</button>
+      <button class="btn-secondary btn-sm" onclick="downloadClipboardUrl(false)">⏳ 加入佇列</button>
+      <button class="btn-close-toast" onclick="dismissClipboardToast()">✕</button>
     </div>
   </div>
 
@@ -720,10 +1026,29 @@
 
         const pct = (task.progress_ratio * 100).toFixed(1);
         const speedMB = ((task.speed_bps || 0) / (1024 * 1024)).toFixed(2);
-        const stateClass = typeof task.state === 'string'
-          ? `status-${task.state.toLowerCase()}`
-          : 'status-error';
-        const stateText = typeof task.state === 'string' ? task.state : 'Error';
+        let stateClass = 'status-queued';
+        let stateText = 'Queued';
+        if (task.state === 'Downloading') {
+          stateClass = 'status-downloading';
+          stateText = '下載中';
+        } else if (task.state === 'Completed') {
+          stateClass = 'status-completed';
+          stateText = '已完成';
+        } else if (task.state === 'Paused') {
+          stateClass = 'status-paused';
+          stateText = '已暫停';
+        } else if (task.state === 'Queued') {
+          if (task.scheduled_at) {
+            stateClass = 'status-scheduled';
+            stateText = `⏰ 預約 ${new Date(task.scheduled_at * 1000).toLocaleTimeString()}`;
+          } else {
+            stateClass = 'status-queued';
+            stateText = '⏳ 佇列等待中';
+          }
+        } else if (typeof task.state === 'object' && task.state.Error) {
+          stateClass = 'status-error';
+          stateText = '錯誤';
+        }
 
         // Render IDM segments slices
         let segmentsHtml = '';
@@ -782,8 +1107,8 @@
           <div class="task-actions">
             ${task.state === 'Downloading'
               ? `<button class="btn-secondary" onclick="pauseTask('${id}')">⏸ 暫停</button>`
-              : (task.state === 'Paused'
-                  ? `<button class="btn-primary" onclick="resumeTask('${id}')">▶ 繼續</button>`
+              : (task.state === 'Paused' || task.state === 'Queued'
+                  ? `<button class="btn-primary" onclick="resumeTask('${id}')">▶ 啟動/繼續</button>`
                   : '')}
             <button class="btn-danger" onclick="deleteTask('${id}')">🗑 刪除</button>
           </div>
@@ -865,6 +1190,12 @@
       document.getElementById('inputUrl').value = '';
       document.getElementById('inputFilename').value = '';
       document.getElementById('modalProbeInfo').style.display = 'none';
+      const chk = document.getElementById('chkNewTaskScheduled');
+      if (chk) {
+        chk.checked = false;
+        document.getElementById('newTaskScheduleBox').style.display = 'none';
+        document.getElementById('inputNewTaskScheduledTime').value = '';
+      }
     }
 
     async function submitNewTask(startImmediately = true) {
@@ -875,6 +1206,13 @@
       const filename = document.getElementById('inputFilename').value.trim() || null;
       const outputDir = document.getElementById('inputOutputDir').value.trim() || null;
 
+      let scheduledStartTime = null;
+      const chkScheduled = document.getElementById('chkNewTaskScheduled');
+      const inputTime = document.getElementById('inputNewTaskScheduledTime');
+      if (chkScheduled && chkScheduled.checked && inputTime && inputTime.value) {
+        scheduledStartTime = Math.floor(new Date(inputTime.value).getTime() / 1000);
+      }
+
       try {
         const res = await fetch(`${API_BASE}/api/add`, {
           method: 'POST',
@@ -884,7 +1222,8 @@
             connections,
             filename,
             output_dir: outputDir,
-            start_immediately: startImmediately
+            start_immediately: startImmediately,
+            scheduled_start_time: scheduledStartTime
           })
         });
         if (res.ok) {
@@ -918,11 +1257,289 @@
       }
     }
 
+    // ==========================================
+    // Batch Download Functions
+    // ==========================================
+    function openBatchModal() {
+      document.getElementById('batchTaskModal').style.display = 'flex';
+      switchBatchTab('multiline');
+      document.getElementById('batchUrlsInput').focus();
+    }
+
+    function closeBatchModal() {
+      document.getElementById('batchTaskModal').style.display = 'none';
+      clearBatchUrls();
+    }
+
+    function switchBatchTab(tab) {
+      const btnMulti = document.getElementById('tabMultilineBtn');
+      const btnPatt = document.getElementById('tabPatternBtn');
+      const tabMulti = document.getElementById('batchTabMultiline');
+      const tabPatt = document.getElementById('batchTabPattern');
+
+      if (tab === 'multiline') {
+        btnMulti.classList.add('active');
+        btnPatt.classList.remove('active');
+        tabMulti.style.display = 'block';
+        tabPatt.style.display = 'none';
+      } else {
+        btnPatt.classList.add('active');
+        btnMulti.classList.remove('active');
+        tabPatt.style.display = 'block';
+        tabMulti.style.display = 'none';
+      }
+    }
+
+    function generatePatternUrls() {
+      const base = document.getElementById('patternBaseUrl').value.trim();
+      const start = parseInt(document.getElementById('patternStart').value, 10) || 0;
+      const end = parseInt(document.getElementById('patternEnd').value, 10) || 0;
+      const digits = parseInt(document.getElementById('patternDigits').value, 10) || 1;
+
+      if (!base || end < start) {
+        alert('請輸入有效的網址規則與起始/結束編號');
+        return;
+      }
+
+      const generated = [];
+      const hasWildcard = base.includes('[*]');
+      const patternRegex = /\[(\d+)-(\d+)\]/;
+
+      for (let i = start; i <= end; i++) {
+        const numStr = String(i).padStart(digits, '0');
+        let finalUrl = '';
+        if (hasWildcard) {
+          finalUrl = base.replace(/\[\*\]/g, numStr);
+        } else if (patternRegex.test(base)) {
+          finalUrl = base.replace(patternRegex, numStr);
+        } else {
+          finalUrl = `${base}${numStr}`;
+        }
+        generated.push(finalUrl);
+      }
+
+      document.getElementById('batchUrlsInput').value = generated.join('\n');
+      switchBatchTab('multiline');
+      updateBatchPreview();
+    }
+
+    function parseBatchUrls() {
+      const raw = document.getElementById('batchUrlsInput').value;
+      return raw.split('\n')
+        .map(u => u.trim())
+        .filter(u => u.startsWith('http://') || u.startsWith('https://'));
+    }
+
+    function updateBatchPreview() {
+      const urls = parseBatchUrls();
+      const listEl = document.getElementById('batchPreviewList');
+      const countEl = document.getElementById('batchCountBadge');
+      countEl.innerText = urls.length;
+
+      if (urls.length === 0) {
+        listEl.innerText = '尚未輸入任何有效網址 (需以 http:// 或 https:// 開頭)';
+      } else {
+        listEl.innerHTML = urls.map((u, idx) => `<div>${idx + 1}. ${escapeHtml(u)}</div>`).join('');
+      }
+    }
+
+    function clearBatchUrls() {
+      document.getElementById('batchUrlsInput').value = '';
+      updateBatchPreview();
+    }
+
+    async function browseBatchDir() {
+      try {
+        const res = await fetch(`${API_BASE}/api/dialog/pick-dir`, { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.path && !data.canceled) {
+            document.getElementById('batchOutputDir').value = data.path;
+          }
+        }
+      } catch (e) {
+        alert('無法呼叫系統資料夾選擇視窗。');
+      }
+    }
+
+    async function submitBatchTasks(startImmediately = true) {
+      const urls = parseBatchUrls();
+      if (urls.length === 0) {
+        alert('請先輸入至少一條有效的下載網址');
+        return;
+      }
+
+      const connections = parseInt(document.getElementById('batchConnections').value, 10);
+      const collisionPolicy = document.getElementById('batchCollisionPolicy').value;
+      const outputDir = document.getElementById('batchOutputDir').value.trim() || null;
+
+      let scheduledStartTime = null;
+      const chkScheduled = document.getElementById('chkBatchScheduled');
+      const inputTime = document.getElementById('batchScheduledTime');
+      if (chkScheduled && chkScheduled.checked && inputTime && inputTime.value) {
+        scheduledStartTime = Math.floor(new Date(inputTime.value).getTime() / 1000);
+      }
+
+      const requests = urls.map(url => ({
+        url,
+        connections,
+        output_dir: outputDir,
+        collision_policy: collisionPolicy,
+        start_immediately: startImmediately,
+        scheduled_start_time: scheduledStartTime
+      }));
+
+      try {
+        const res = await fetch(`${API_BASE}/api/batch_add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requests)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          closeBatchModal();
+          await loadTasks();
+          alert(`🎉 成功排入 ${data.ids ? data.ids.length : urls.length} 個批次傳輸任務！`);
+        } else {
+          alert('批次新增失敗');
+        }
+      } catch (e) {
+        alert('請求錯誤: ' + e);
+      }
+    }
+
+    // ==========================================
+    // Queue Concurrency Settings
+    // ==========================================
+    async function loadQueueSettings() {
+      try {
+        const res = await fetch(`${API_BASE}/api/settings/queue`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.max_concurrent_tasks) {
+            document.getElementById('selectMaxConcurrent').value = data.max_concurrent_tasks.toString();
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function updateQueueConcurrency(val) {
+      const max = parseInt(val, 10) || 3;
+      try {
+        await fetch(`${API_BASE}/api/settings/queue`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ max_concurrent_tasks: max })
+        });
+        await loadTasks();
+      } catch (e) {}
+    }
+
+    // ==========================================
+    // Clipboard Monitoring Functions
+    // ==========================================
+    let clipboardMonitorEnabled = localStorage.getItem('dpls_clipboard_monitor') !== 'false';
+    let lastCopiedUrl = '';
+    let pendingClipboardUrl = '';
+
+    function toggleClipboardMonitor() {
+      clipboardMonitorEnabled = !clipboardMonitorEnabled;
+      localStorage.setItem('dpls_clipboard_monitor', clipboardMonitorEnabled ? 'true' : 'false');
+      updateClipboardUI();
+    }
+
+    function updateClipboardUI() {
+      const icon = document.getElementById('clipboardIcon');
+      const text = document.getElementById('clipboardStatusText');
+      if (clipboardMonitorEnabled) {
+        icon.textContent = '📋';
+        text.textContent = '開啟';
+        text.style.color = '#34d399';
+      } else {
+        icon.textContent = '⏸️';
+        text.textContent = '關閉';
+        text.style.color = '#8b949e';
+      }
+    }
+
+    function isValidDownloadUrl(text) {
+      if (!text || typeof text !== 'string') return false;
+      const trimmed = text.trim();
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) return false;
+      try {
+        const url = new URL(trimmed);
+        const pathname = url.pathname.toLowerCase();
+        const commonExts = ['.zip', '.rar', '.7z', '.tar', '.gz', '.iso', '.exe', '.msi', '.deb', '.apk', '.mp4', '.mkv', '.mp3', '.pdf', '.bin', '.dmg'];
+        return commonExts.some(ext => pathname.endsWith(ext));
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function checkClipboardForDownload() {
+      if (!clipboardMonitorEnabled) return;
+      if (!document.hasFocus()) return;
+      try {
+        const text = await navigator.clipboard.readText();
+        if (!text || text.trim() === lastCopiedUrl) return;
+        const url = text.trim();
+        if (isValidDownloadUrl(url)) {
+          lastCopiedUrl = url;
+          showClipboardToast(url);
+        }
+      } catch (e) {}
+    }
+
+    function showClipboardToast(url) {
+      pendingClipboardUrl = url;
+      document.getElementById('toastUrlText').textContent = url;
+      document.getElementById('clipboardToast').style.display = 'block';
+    }
+
+    function dismissClipboardToast() {
+      document.getElementById('clipboardToast').style.display = 'none';
+      pendingClipboardUrl = '';
+    }
+
+    async function downloadClipboardUrl(startImmediately) {
+      const url = pendingClipboardUrl;
+      dismissClipboardToast();
+      if (!url) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url,
+            connections: 16,
+            start_immediately: startImmediately
+          })
+        });
+        if (res.ok) {
+          await loadTasks();
+        }
+      } catch (e) {}
+    }
+
+    window.addEventListener('focus', () => {
+      setTimeout(checkClipboardForDownload, 400);
+    });
+    document.addEventListener('paste', (e) => {
+      const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+      if (isValidDownloadUrl(pasteData)) {
+        lastCopiedUrl = pasteData.trim();
+        showClipboardToast(pasteData.trim());
+      }
+    });
+
     // Init
     window.addEventListener('load', () => {
       resizeCanvas();
       loadTasks();
       initWebSocket();
+      loadQueueSettings();
+      updateClipboardUI();
       setInterval(() => {
         updateGlobalStats();
         loadTasks();

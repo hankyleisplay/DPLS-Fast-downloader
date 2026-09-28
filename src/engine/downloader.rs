@@ -38,6 +38,7 @@ pub struct TaskSnapshot {
     pub connections: usize,
     pub segments: Vec<Segment>,
     pub supports_range: bool,
+    pub scheduled_at: Option<u64>,
 }
 
 pub struct DownloadTask {
@@ -52,6 +53,7 @@ pub struct DownloadTask {
     pub speed_bps: Arc<AtomicU64>,
     pub is_paused: Arc<AtomicBool>,
     pub progress_tx: broadcast::Sender<TaskSnapshot>,
+    pub scheduled_at: Arc<RwLock<Option<u64>>>,
     client: Client,
     final_output_path: Arc<RwLock<PathBuf>>,
 }
@@ -123,6 +125,7 @@ impl DownloadTask {
             speed_bps: Arc::new(AtomicU64::new(0)),
             is_paused: Arc::new(AtomicBool::new(false)),
             progress_tx,
+            scheduled_at: Arc::new(RwLock::new(None)),
             client,
             final_output_path: Arc::new(RwLock::new(initial_path)),
         })
@@ -151,6 +154,8 @@ impl DownloadTask {
             None
         };
 
+        let scheduled = *self.scheduled_at.read().await;
+
         TaskSnapshot {
             id: self.id.clone(),
             url: self.url.clone(),
@@ -165,6 +170,7 @@ impl DownloadTask {
             connections: self.connections,
             segments: meta.segments.clone(),
             supports_range: meta.supports_range,
+            scheduled_at: scheduled,
         }
     }
 

@@ -25,6 +25,7 @@ pub async fn start_web_server(
     port: u16,
     auto_open: bool,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    manager.ensure_queue_worker_started();
     let state = Arc::new(AppState { manager });
 
     let app = Router::new()
@@ -36,11 +37,13 @@ pub async fn start_web_server(
         .route("/api/task/:id", get(get_single_task_handler))
         .route("/api/task/:id/hash", get(task_hash_handler))
         .route("/api/add", post(add_task_handler))
+        .route("/api/batch_add", post(batch_add_handler))
         .route("/api/pause/:id", post(pause_task_handler))
         .route("/api/resume/:id", post(resume_task_handler))
         .route("/api/open/:id", post(open_file_handler))
         .route("/api/open-dir/:id", post(open_dir_handler))
         .route("/api/settings/autostart", get(get_autostart_handler).post(set_autostart_handler))
+        .route("/api/settings/queue", get(get_queue_settings_handler).post(set_queue_settings_handler))
         .route("/api/task/:id", delete(delete_task_handler))
         .route("/ws", get(ws_handler))
         .layer(CorsLayer::permissive())
@@ -159,6 +162,47 @@ async fn add_task_handler(
             Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }
+}
+
+async fn batch_add_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<Vec<AddTaskRequest>>,
+) -> Result<Json<serde_json::Value>, StatusCode> {
+    let results = state.manager.batch_add(payload).await;
+    let mut ids = Vec::new();
+    let mut errors = Vec::new();
+    for res in results {
+        match res {
+            Ok(id) => ids.push(id),
+            Err(e) => errors.push(e),
+        }
+    }
+    Ok(Json(serde_json::json!({
+        "status": "ok",
+        "ids": ids,
+        "errors": errors
+    })))
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct QueueSettingsPayload {
+    pub max_concurrent_tasks: usize,
+}
+
+async fn get_queue_settings_handler(
+    State(state): State<Arc<AppState>>,
+) -> Json<serde_json::Value> {
+    let max = state.manager.get_max_concurrent_tasks();
+    Json(serde_json::json!({ "max_concurrent_tasks": max }))
+}
+
+async fn set_queue_settings_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<QueueSettingsPayload>,
+) -> Json<serde_json::Value> {
+    state.manager.set_max_concurrent_tasks(payload.max_concurrent_tasks).await;
+    let max = state.manager.get_max_concurrent_tasks();
+    Json(serde_json::json!({ "status": "ok", "max_concurrent_tasks": max }))
 }
 
 async fn pause_task_handler(

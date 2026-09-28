@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const toggleAuto = document.getElementById('toggleAutoIntercept');
   const toggleDialog = document.getElementById('toggleShowDialog');
   const toggleAll = document.getElementById('toggleInterceptAll');
+  const toggleSniffer = document.getElementById('toggleMediaSniffer');
   const selectConn = document.getElementById('selectConnections');
   const inputExts = document.getElementById('inputExtensions');
   const statusBadge = document.getElementById('statusBadge');
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     autoIntercept: true,
     showDialog: true,
     interceptAll: false,
+    mediaSniffer: true,
     connections: 64,
     serverUrl: 'http://127.0.0.1:6800',
     extensions: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso', 'img', 'dmg', 'exe', 'msi', 'deb', 'rpm', 'apk', 'pkg', 'mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm', 'mp3', 'flac', 'wav', 'aac', 'ogg', 'pdf', 'epub', 'bin', 'torrent']
@@ -23,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   toggleAuto.checked = config.autoIntercept;
   if (toggleDialog) toggleDialog.checked = config.showDialog !== false;
   toggleAll.checked = config.interceptAll;
+  if (toggleSniffer) toggleSniffer.checked = config.mediaSniffer !== false;
   selectConn.value = config.connections.toString();
   inputExts.value = config.extensions.join(', ');
 
@@ -40,6 +43,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   toggleAll.addEventListener('change', () => {
     chrome.storage.local.set({ interceptAll: toggleAll.checked });
   });
+
+  if (toggleSniffer) {
+    toggleSniffer.addEventListener('change', () => {
+      chrome.storage.local.set({ mediaSniffer: toggleSniffer.checked });
+    });
+  }
 
   selectConn.addEventListener('change', () => {
     chrome.storage.local.set({ connections: parseInt(selectConn.value, 10) });

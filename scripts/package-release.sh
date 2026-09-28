@@ -26,9 +26,9 @@ cp "$ROOT_DIR/dpls-gui" "$RELEASE_DIR/dpls-gui"
 cp "$ROOT_DIR/install.sh" "$RELEASE_DIR/install.sh"
 cp "$ROOT_DIR/update.sh" "$RELEASE_DIR/update.sh"
 cp "$ROOT_DIR/uninstall.sh" "$RELEASE_DIR/uninstall.sh"
-mkdir -p "$RELEASE_DIR/src-tauri/icons" "$RELEASE_DIR/extension/icons"
+mkdir -p "$RELEASE_DIR/src-tauri/icons"
 cp "$ROOT_DIR/src-tauri/icons/icon.png" "$RELEASE_DIR/src-tauri/icons/icon.png"
-cp "$ROOT_DIR/extension/icons/icon128.png" "$RELEASE_DIR/extension/icons/icon128.png"
+cp -rf "$ROOT_DIR/extension" "$RELEASE_DIR/"
 chmod +x "$RELEASE_DIR/dpls" "$RELEASE_DIR/dpls-gui" "$RELEASE_DIR/install.sh" "$RELEASE_DIR/update.sh" "$RELEASE_DIR/uninstall.sh"
 
 tar -czvf "$DIST_DIR/dpls-fast-linux-x86_64.tar.gz" -C "$DIST_DIR" dpls-fast-linux-x86_64
