@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DPLS-Fast | 極速多線程下載加速器</title>
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border-color: #30363d;
+      --accent: #2ea043;
+      --accent-glow: rgba(46, 160, 67, 0.4);
+      --speed-color: #58a6ff;
+      --speed-glow: rgba(88, 166, 255, 0.3);
+      --text-main: #f0f6fc;
+      --text-sub: #8b949e;
+      --card-bg: #161b22;
+      --danger: #f85149;
+      --warning: #d29922;
+      --seg-active: #3fb950;
+      --seg-pending: #21262d;
+      --seg-border: #30363d;
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, #58a6ff, #2ea043);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-badge {
+      background: rgba(88, 166, 255, 0.15);
+      color: #58a6ff;
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .stat-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .stat-badge .label {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+    }
+
+    .stat-badge .value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--speed-color);
+      text-shadow: 0 0 12px var(--speed-glow);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      outline: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #238636, #2ea043);
+      color: #fff;
+      box-shadow: 0 2px 8px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2ea043, #3fb950);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-tertiary);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+      background-color: #30363d;
+    }
+
+    .btn-danger {
+      background-color: rgba(248, 81, 73, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+    }
+    .btn-danger:hover {
+      background-color: var(--danger);
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    /* Speed Chart Section */
+    .chart-container {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .chart-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+
+    canvas#speedChart {
+      width: 100%;
+      height: 90px;
+      display: block;
+    }
+
+    /* Task List */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .task-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .task-card:hover {
+      border-color: #58a6ff;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .task-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .task-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .file-icon {
+      font-size: 2rem;
+      background: var(--bg-tertiary);
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .file-details h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .file-details .task-url {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      max-width: 500px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+    }
+
+    .task-meta strong {
+      color: var(--text-main);
+    }
+
+    .task-status-badge {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-downloading {
+      background: rgba(46, 160, 67, 0.2);
+      color: #3fb950;
+      border: 1px solid rgba(46, 160, 67, 0.4);
+    }
+
+    .status-completed {
+      background: rgba(88, 166, 255, 0.2);
+      color: #58a6ff;
+      border: 1px solid rgba(88, 166, 255, 0.4);
+    }
+
+    .status-paused {
+      background: rgba(210, 153, 34, 0.2);
+      color: #d29922;
+      border: 1px solid rgba(210, 153, 34, 0.4);
+    }
+
+    .status-error {
+      background: rgba(248, 81, 73, 0.2);
+      color: #f85149;
+      border: 1px solid rgba(248, 81, 73, 0.4);
+    }
+
+    /* Overall Progress Bar */
+    .progress-bar-bg {
+      height: 8px;
+      background-color: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #58a6ff, #2ea043);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* IDM Segment Visualizer */
+    .segment-visualizer-container {
+      margin-top: 14px;
+      background-color: #0b0e14;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .segment-visualizer-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+    }
+
+    .segment-bar {
+      display: flex;
+      height: 22px;
+      width: 100%;
+      background-color: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .segment-slice {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-right: 1px solid #161b22;
+      box-sizing: border-box;
+      transition: width 0.2s;
+    }
+
+    .segment-slice-downloaded {
+      background: linear-gradient(180deg, #3fb950, #238636);
+      height: 100%;
+      transition: width 0.2s;
+    }
+
+    .segment-slice.active {
+      animation: pulseActive 1.5s infinite;
+    }
+
+    @keyframes pulseActive {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(1.35); }
+      100% { filter: brightness(1); }
+    }
+
+    /* Controls */
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      justify-content: flex-end;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      width: 540px;
+      max-width: 95%;
+      padding: 1.75rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-card h2 {
+      margin-bottom: 1.25rem;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .form-control {
+      width: 100%;
+      background-color: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+    }
+    .form-control:focus {
+      border-color: #58a6ff;
+      outline: none;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text-sub);
+    }
+
+    .empty-state-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">⚡ DPLS-Fast</div>
+      <span class="brand-badge">IDM-Grade Dynamic Engine</span>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-badge">
+        <span class="label">即時總下載頻寬</span>
+        <span class="value" id="globalSpeed">0.00 MB/s</span>
+      </div>
+      <div class="stat-badge">
+        <span class="label">任務狀態</span>
+        <span class="value" style="color: var(--text-main); font-size: 1.1rem;" id="taskCounts">0 下載中</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-primary" onclick="openNewTaskModal()">
+        <span>+</span> 新增下載任務
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Real-time Speed Canvas -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <span class="chart-title">即時頻寬折線監控 (最近 60 秒)</span>
+        <span id="chartPeak" style="font-size: 0.8rem; color: var(--text-sub);">峰值: 0.00 MB/s</span>
+      </div>
+      <canvas id="speedChart"></canvas>
+    </div>
+
+    <div class="section-title">
+      <span>📥 下載任務列表</span>
+    </div>
+
+    <div class="task-list" id="taskList">
+      <!-- Dynamically filled -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-state-icon">🚀</div>
+        <h3>目前尚無下載任務</h3>
+        <p>點擊右上角「新增下載任務」體驗 IDM 級超速多線程下載</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Task Modal -->
+  <div class="modal-overlay" id="newTaskModal">
+    <div class="modal-card">
+      <h2>🚀 建立檔案傳輸任務</h2>
+      <div class="form-group">
+        <label>目標傳輸 URL</label>
+        <input type="url" id="inputUrl" class="form-control" placeholder="https://example.com/large-file.zip" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>並行連線線程數 (Parallel Threads)</label>
+          <select id="inputConnections" class="form-control">
+            <option value="4">4 併發連線 (低負載模式)</option>
+            <option value="8">8 併發連線 (均衡傳輸模式)</option>
+            <option value="16">16 併發連線 (標準多線程)</option>
+            <option value="32">32 併發連線 (高速並行傳輸)</option>
+            <option value="64" selected>64 併發連線 (極速多路復用 - 推薦)</option>
+            <option value="128">128 併發連線 (極限頻寬滿載)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>另存檔案名稱 (可選)</label>
+          <input type="text" id="inputFilename" class="form-control" placeholder="留空由伺服器自動探測">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>儲存目標路徑 (可選)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="inputOutputDir" class="form-control" placeholder="留空使用預設 Downloads 目錄" style="flex: 1;">
+          <button type="button" class="btn-secondary" style="white-space: nowrap;" onclick="browseModalDir()">📂 瀏覽...</button>
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+          <span style="font-size: 0.72rem; color: #8b949e; align-self: center;">常用路徑：</span>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applySystemDir('downloads')">⬇️ 下載</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applySystemDir('desktop')">🖥️ 桌面</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applySystemDir('documents')">📄 文件</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applySystemDir('videos')">🎬 影片</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applySystemDir('music')">🎵 音樂</button>
+        </div>
+      </div>
+      <div id="modalProbeInfo" style="display: none; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px 14px; margin-top: 1rem; font-size: 0.82rem; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="color: #8b949e;">資源大小: </span>
+          <strong id="modalFileSize" style="color: #58a6ff;">--</strong>
+        </div>
+        <div>
+          <span style="color: #8b949e;">HTTP Range 支援: </span>
+          <strong id="modalRangeSupport" style="color: #3fb950;">--</strong>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+        <button class="btn-secondary" onclick="closeNewTaskModal()">取消</button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" style="color: #d29922; border-color: rgba(210, 153, 34, 0.4);" onclick="submitNewTask(false)">⏳ 排入待傳佇列</button>
+          <button class="btn-primary" onclick="submitNewTask(true)">🚀 開始傳輸</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ws;
+    let tasks = {};
+    const speedHistory = new Array(60).fill(0);
+    let peakSpeed = 0;
+
+    // Speed Chart Drawing
+    const canvas = document.getElementById('speedChart');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth - 48;
+      canvas.height = 90;
+      drawChart();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function drawChart() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const maxVal = Math.max(1, ...speedHistory) * 1.15;
+      const step = canvas.width / (speedHistory.length - 1);
+
+      // Gradient fill
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, 'rgba(88, 166, 255, 0.4)');
+      grad.addColorStop(1, 'rgba(88, 166, 255, 0.0)');
+
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height);
+      for (let i = 0; i < speedHistory.length; i++) {
+        const x = i * step;
+        const y = canvas.height - (speedHistory[i] / maxVal) * canvas.height;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Line
+      ctx.beginPath();
+      for (let i = 0; i < speedHistory.length; i++) {
+        const x = i * step;
+        const y = canvas.height - (speedHistory[i] / maxVal) * canvas.height;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = '#58a6ff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0 || !bytes) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+    }
+
+    function formatEta(seconds) {
+      if (!seconds && seconds !== 0) return '--';
+      if (seconds > 3600) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+      if (seconds > 60) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+      return `${seconds}s`;
+    }
+
+    const isDirectWeb = (window.location.protocol === 'http:' || window.location.protocol === 'https:') && 
+      (window.location.port === '6800' || window.location.port === '6805');
+    const API_BASE = isDirectWeb ? '' : 'http://127.0.0.1:6800';
+
+    function initWebSocket() {
+      const wsUri = isDirectWeb
+        ? ((window.location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + window.location.host + '/ws')
+        : 'ws://127.0.0.1:6800/ws';
+      ws = new WebSocket(wsUri);
+
+      ws.onmessage = (event) => {
+        try {
+          const snapshot = JSON.parse(event.data);
+          tasks[snapshot.id] = snapshot;
+          renderTasks();
+          updateGlobalStats();
+        } catch (e) {
+          console.error('Parse WS message error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        setTimeout(initWebSocket, 2000);
+      };
+    }
+
+    async function loadTasks() {
+      try {
+        const res = await fetch(`${API_BASE}/api/tasks`);
+        const list = await res.json();
+        list.forEach(t => tasks[t.id] = t);
+        renderTasks();
+        updateGlobalStats();
+      } catch (e) {
+        console.error('Fetch tasks error:', e);
+      }
+    }
+
+    function updateGlobalStats() {
+      let totalSpeed = 0;
+      let activeCount = 0;
+      for (const id in tasks) {
+        const t = tasks[id];
+        if (t.state === 'Downloading') {
+          totalSpeed += t.speed_bps || 0;
+          activeCount++;
+        }
+      }
+
+      const speedMB = totalSpeed / (1024 * 1024);
+      document.getElementById('globalSpeed').innerText = `${speedMB.toFixed(2)} MB/s`;
+      document.getElementById('taskCounts').innerText = `${activeCount} 下載中`;
+
+      speedHistory.shift();
+      speedHistory.push(speedMB);
+      if (speedMB > peakSpeed) {
+        peakSpeed = speedMB;
+        document.getElementById('chartPeak').innerText = `峰值: ${peakSpeed.toFixed(2)} MB/s`;
+      }
+      drawChart();
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('taskList');
+      const emptyState = document.getElementById('emptyState');
+      const taskKeys = Object.keys(tasks);
+
+      if (taskKeys.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      taskKeys.forEach(id => {
+        const task = tasks[id];
+        let card = document.getElementById(`task-${id}`);
+        if (!card) {
+          card = document.createElement('div');
+          card.className = 'task-card';
+          card.id = `task-${id}`;
+          container.appendChild(card);
+        }
+
+        const pct = (task.progress_ratio * 100).toFixed(1);
+        const speedMB = ((task.speed_bps || 0) / (1024 * 1024)).toFixed(2);
+        const stateClass = typeof task.state === 'string'
+          ? `status-${task.state.toLowerCase()}`
+          : 'status-error';
+        const stateText = typeof task.state === 'string' ? task.state : 'Error';
+
+        // Render IDM segments slices
+        let segmentsHtml = '';
+        if (task.total_size && task.segments && task.segments.length > 0) {
+          const total = task.total_size;
+          segmentsHtml = task.segments.map((seg, idx) => {
+            const leftPct = ((seg.start / total) * 100).toFixed(3);
+            const widthPct = (((seg.end - seg.start + 1) / total) * 100).toFixed(3);
+            const dlRatio = seg.end >= seg.start ? Math.min(1.0, seg.downloaded / (seg.end - seg.start + 1)) : 0;
+            const dlPct = (dlRatio * 100).toFixed(1);
+
+            return `
+              <div class="segment-slice ${seg.status === 'Downloading' ? 'active' : ''}" 
+                   style="left: ${leftPct}%; width: ${widthPct}%;" 
+                   title="線程 #${idx + 1}: ${formatBytes(seg.downloaded)} / ${formatBytes(seg.end - seg.start + 1)} (${dlPct}%)">
+                <div class="segment-slice-downloaded" style="width: ${dlPct}%;"></div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        card.innerHTML = `
+          <div class="task-top">
+            <div class="task-info">
+              <div class="file-icon">📦</div>
+              <div class="file-details">
+                <h3>${escapeHtml(task.filename)}</h3>
+                <div class="task-url" title="${escapeHtml(task.url)}">${escapeHtml(task.url)}</div>
+              </div>
+            </div>
+            <span class="task-status-badge ${stateClass}">${stateText}</span>
+          </div>
+
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: ${pct}%;"></div>
+          </div>
+
+          <div class="task-meta">
+            <span>進度: <strong>${pct}%</strong> (${formatBytes(task.downloaded_bytes)} / ${formatBytes(task.total_size)})</span>
+            <span>速度: <strong style="color: #58a6ff;">${speedMB} MB/s</strong></span>
+            <span>剩餘時間: <strong>${formatEta(task.eta_seconds)}</strong></span>
+            <span>併發線程: <strong>${task.connections}</strong> (動態分段: ${task.segments ? task.segments.length : 0})</span>
+          </div>
+
+          <!-- IDM Segment Visualizer Bar -->
+          <div class="segment-visualizer-container">
+            <div class="segment-visualizer-header">
+              <span>⚡ 分段傳輸動態監控 (Segment Transmission Monitor)</span>
+              <span>HTTP Range: ${task.supports_range ? '支援 (多路並行加速)' : '不支援 (單線程串流)'}</span>
+            </div>
+            <div class="segment-bar">
+              ${segmentsHtml}
+            </div>
+          </div>
+
+          <div class="task-actions">
+            ${task.state === 'Downloading'
+              ? `<button class="btn-secondary" onclick="pauseTask('${id}')">⏸ 暫停</button>`
+              : (task.state === 'Paused'
+                  ? `<button class="btn-primary" onclick="resumeTask('${id}')">▶ 繼續</button>`
+                  : '')}
+            <button class="btn-danger" onclick="deleteTask('${id}')">🗑 刪除</button>
+          </div>
+        `;
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    let probeTimer = null;
+    document.getElementById('inputUrl').addEventListener('input', () => {
+      clearTimeout(probeTimer);
+      probeTimer = setTimeout(probeModalUrl, 400);
+    });
+
+    async function probeModalUrl() {
+      const url = document.getElementById('inputUrl').value.trim();
+      const probeInfoEl = document.getElementById('modalProbeInfo');
+      if (!url || !url.startsWith('http')) {
+        probeInfoEl.style.display = 'none';
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/probe?url=${encodeURIComponent(url)}`);
+        if (res.ok) {
+          const data = await res.json();
+          probeInfoEl.style.display = 'flex';
+          document.getElementById('modalFileSize').textContent = data.total_size ? formatBytes(data.total_size) : '未知 (串流下載)';
+          document.getElementById('modalRangeSupport').innerHTML = data.supports_range ? '⚡ 支援' : '⚠️ 不支援 (單線程)';
+          if (data.filename && !document.getElementById('inputFilename').value.trim()) {
+            document.getElementById('inputFilename').value = data.filename;
+          }
+          if (data.default_output_dir && !document.getElementById('inputOutputDir').value.trim()) {
+            document.getElementById('inputOutputDir').value = data.default_output_dir;
+          }
+        }
+      } catch (e) {}
+    }
+
+    let systemDirsCache = null;
+    async function applySystemDir(type) {
+      if (!systemDirsCache) {
+        try {
+          const res = await fetch(`${API_BASE}/api/system-dirs`);
+          if (res.ok) {
+            systemDirsCache = await res.json();
+          }
+        } catch (e) {}
+      }
+      if (systemDirsCache && systemDirsCache[type]) {
+        document.getElementById('inputOutputDir').value = systemDirsCache[type];
+      }
+    }
+
+    async function browseModalDir() {
+      try {
+        const res = await fetch(`${API_BASE}/api/dialog/pick-dir`, { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.path && !data.canceled) {
+            document.getElementById('inputOutputDir').value = data.path;
+          }
+        }
+      } catch (e) {
+        alert('無法呼叫系統資料夾選擇視窗。');
+      }
+    }
+
+    function openNewTaskModal() {
+      document.getElementById('newTaskModal').style.display = 'flex';
+      document.getElementById('inputUrl').focus();
+    }
+
+    function closeNewTaskModal() {
+      document.getElementById('newTaskModal').style.display = 'none';
+      document.getElementById('inputUrl').value = '';
+      document.getElementById('inputFilename').value = '';
+      document.getElementById('modalProbeInfo').style.display = 'none';
+    }
+
+    async function submitNewTask(startImmediately = true) {
+      const url = document.getElementById('inputUrl').value.trim();
+      if (!url) return;
+
+      const connections = parseInt(document.getElementById('inputConnections').value, 10);
+      const filename = document.getElementById('inputFilename').value.trim() || null;
+      const outputDir = document.getElementById('inputOutputDir').value.trim() || null;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url,
+            connections,
+            filename,
+            output_dir: outputDir,
+            start_immediately: startImmediately
+          })
+        });
+        if (res.ok) {
+          closeNewTaskModal();
+          await loadTasks();
+        } else {
+          alert('新增任務失敗');
+        }
+      } catch (e) {
+        alert('請求錯誤: ' + e);
+      }
+    }
+
+    async function pauseTask(id) {
+      await fetch(`${API_BASE}/api/pause/${id}`, { method: 'POST' });
+      await loadTasks();
+    }
+
+    async function resumeTask(id) {
+      await fetch(`${API_BASE}/api/resume/${id}`, { method: 'POST' });
+      await loadTasks();
+    }
+
+    async function deleteTask(id) {
+      if (confirm('確定要刪除此任務嗎？')) {
+        await fetch(`${API_BASE}/api/task/${id}`, { method: 'DELETE' });
+        delete tasks[id];
+        const card = document.getElementById(`task-${id}`);
+        if (card) card.remove();
+        await loadTasks();
+      }
+    }
+
+    // Init
+    window.addEventListener('load', () => {
+      resizeCanvas();
+      loadTasks();
+      initWebSocket();
+      setInterval(() => {
+        updateGlobalStats();
+        loadTasks();
+      }, 1500);
+    });
+  </script>
+</body>
+</html>

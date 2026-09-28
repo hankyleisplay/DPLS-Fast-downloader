@@ -1,0 +1,21 @@
+# Rust build artifacts
+target/
+src-tauri/target/
+.test_cargo/
+.cargo/
+
+# Local compiled binaries
+dpls
+dpls-gui
+*.exe
+
+# Distribution archives (published via GitHub Releases)
+dist/
+
+# Temporary / OS files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.part
+*.dpls.meta

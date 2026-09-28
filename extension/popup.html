@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>DPLS-Fast 控制面板</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <span class="logo">⚡</span>
+      <div class="brand-text">
+        <h3>DPLS-Fast</h3>
+        <span class="sub">動態多路分段加速套件 v1.2</span>
+      </div>
+    </div>
+    <div class="status-indicator" id="statusBadge">
+      <span class="dot"></span>
+      <span id="statusText">檢測中...</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="setting-item">
+      <div class="setting-label">
+        <strong>自動接管下載</strong>
+        <span>點擊下載連結時自動由 DPLS-Fast 執行多線程加速</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggleAutoIntercept">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-item">
+      <div class="setting-label">
+        <strong>下載前顯示傳輸確認視窗</strong>
+        <span>彈出視窗設定儲存路徑、檔案分類與線程參數</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggleShowDialog">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-item">
+      <div class="setting-label">
+        <strong>全面接管所有下載</strong>
+        <span>不限副檔名，所有瀏覽器下載皆由 DPLS-Fast 處理</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggleInterceptAll">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-item">
+      <div class="setting-label">
+        <strong>預設並行連線數</strong>
+        <span>動態多路分段傳輸線程數</span>
+      </div>
+      <select id="selectConnections" class="select-box">
+        <option value="4">4 併發連線 (低負載模式)</option>
+        <option value="8">8 併發連線 (均衡傳輸模式)</option>
+        <option value="16">16 併發連線 (標準多線程)</option>
+        <option value="32">32 併發連線 (高速並行傳輸)</option>
+        <option value="64">64 併發連線 (極速多路復用 - 推薦)</option>
+        <option value="128">128 併發連線 (極限頻寬滿載)</option>
+      </select>
+    </div>
+
+    <div class="setting-item col">
+      <div class="setting-label">
+        <strong>接管副檔名過濾列表</strong>
+        <span>（逗點分隔）</span>
+      </div>
+      <input type="text" id="inputExtensions" class="text-input" placeholder="zip, rar, iso, mp4, exe...">
+    </div>
+
+    <div class="tip-box">
+      💡 <strong>IDM 快捷鍵：</strong>點擊連結時按住 <kbd>Alt</kbd> 鍵可臨時略過接管，使用瀏覽器原生下載。
+    </div>
+
+    <div class="stats-card">
+      <div class="stat-col">
+        <span class="stat-num" id="activeTasksCount">0</span>
+        <span class="stat-desc">活躍下載</span>
+      </div>
+      <div class="stat-col">
+        <span class="stat-num" id="currentSpeed">0.0 MB/s</span>
+        <span class="stat-desc">當前總速度</span>
+      </div>
+    </div>
+
+    <button id="btnOpenDashboard" class="btn-primary">
+      🚀 開啟 DPLS-Fast 視覺化儀表板
+    </button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

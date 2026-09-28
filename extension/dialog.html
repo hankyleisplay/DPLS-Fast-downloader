@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>DPLS-Fast | 檔案傳輸加速系統</title>
+  <link rel="stylesheet" href="dialog.css">
+</head>
+<body>
+  <div class="liquid-glass-wrapper">
+    <!-- ==================== VIEW 1: PRE-DOWNLOAD SETUP ==================== -->
+    <div class="dialog-container" id="setupView">
+      <!-- Header -->
+      <div class="dialog-header">
+        <div class="brand">
+          <div class="logo-icon">⚡</div>
+          <div class="brand-text">
+            <div class="title" data-i18n="brand_title">DPLS-Fast 傳輸加速器</div>
+            <div class="subtitle" data-i18n="brand_subtitle">動態多路分段傳輸系統</div>
+          </div>
+        </div>
+        <div class="header-controls">
+          <select id="selectLanguage" class="glass-select lang-picker" title="語言 / Language">
+            <option value="zh-TW">繁體中文</option>
+            <option value="zh-CN">简体中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+          </select>
+          <div class="badge-tag" id="tagThreads">64 併發連線加速</div>
+        </div>
+      </div>
+
+      <!-- Main Content Form -->
+      <div class="dialog-body">
+        <!-- Probe Status Banner -->
+        <div class="probe-banner" id="probeBanner">
+          <div class="spinner" id="probeSpinner"></div>
+          <span id="probeStatusText" data-i18n="probe_wait">正在探測遠端伺服器響應與資源參數...</span>
+        </div>
+
+        <!-- Mode Switcher: Auto-Tune vs Manual -->
+        <div class="mode-switcher-container">
+          <button type="button" class="mode-tab active" id="btnModeAuto">
+            <span data-i18n="mode_auto">🤖 全自動智能選優 (Auto-Tune)</span>
+          </button>
+          <button type="button" class="mode-tab" id="btnModeManual">
+            <span data-i18n="mode_manual">⚙️ 手動專業微調 (Manual Tuning)</span>
+          </button>
+        </div>
+
+        <!-- Smart Auto-Tune Dynamic Dashboard Card -->
+        <div class="autotune-card" id="autoTuneCard">
+          <div class="autotune-header">
+            <div class="autotune-brand">
+              <span class="ai-sparkle">✨</span>
+              <span class="autotune-title" data-i18n="autotune_card_title">DPLS-Fast AI 智能傳輸決策</span>
+            </div>
+            <span class="autotune-status-chip" id="autoTuneStatusChip">🟢 最佳化就緒</span>
+          </div>
+          <div class="autotune-grid">
+            <div class="autotune-item">
+              <span class="autotune-label" data-i18n="autotune_threads_desc">智能線程配置</span>
+              <span class="autotune-value highlight" id="autoTuneThreadsVal">自動探測中...</span>
+            </div>
+            <div class="autotune-item">
+              <span class="autotune-label" data-i18n="autotune_category_desc">資源自動歸類</span>
+              <span class="autotune-value" id="autoTuneCategoryVal">常規下載 (General)</span>
+            </div>
+            <div class="autotune-item">
+              <span class="autotune-label" data-i18n="autotune_resilience_desc">網路防盜鏈防護</span>
+              <span class="autotune-value" id="autoTuneResilienceVal" data-i18n="autotune_resilience_val">啟用 Cookies 與 Referer 鑑權</span>
+            </div>
+          </div>
+          <div class="autotune-tip" data-i18n="autotune_tip">
+            💡 參數已由引擎完成最佳化調配，直接點擊下方「開始傳輸」或按 Enter 即可！
+          </div>
+        </div>
+
+        <!-- Target URL -->
+        <div class="form-group">
+          <label for="inputUrl" data-i18n="target_url">目標傳輸位址 (Target URL)</label>
+          <div class="input-with-icon">
+            <input type="text" id="inputUrl" class="form-control" spellcheck="false" placeholder="https://..." readonly>
+            <button type="button" class="icon-btn" id="btnCopyUrl" title="複製傳輸網址">📋</button>
+          </div>
+        </div>
+
+        <!-- Filename & Category Row -->
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="inputFilename" data-i18n="target_filename">另存檔案名稱 (Target Filename)</label>
+            <input type="text" id="inputFilename" class="form-control" placeholder="download.bin">
+          </div>
+          <div class="form-group flex-1">
+            <label for="selectCategory" data-i18n="resource_category">資源類型分類 (Category)</label>
+            <select id="selectCategory" class="form-control">
+              <option value="general" data-i18n="cat_general">一般檔案 (General)</option>
+              <option value="compressed" data-i18n="cat_compressed">壓縮封裝 (Archives)</option>
+              <option value="video" data-i18n="cat_video">視訊媒體 (Video)</option>
+              <option value="audio" data-i18n="cat_audio">音訊媒體 (Audio)</option>
+              <option value="programs" data-i18n="cat_programs">應用程式 (Applications)</option>
+              <option value="documents" data-i18n="cat_documents">數位文件 (Documents)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Resource Size & Range Support Info -->
+        <div class="info-card">
+          <div class="info-item">
+            <span class="info-label" data-i18n="content_length">資料總容量 (Content Length)</span>
+            <span class="info-val highlight" id="displayFileSize">計算中...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label" data-i18n="range_support">HTTP Range 斷點分段</span>
+            <span class="info-val" id="displayRangeSupport">檢測中...</span>
+          </div>
+        </div>
+
+        <!-- Destination Directory with Native Browse & Quick Shortcuts -->
+        <div class="form-group">
+          <div class="label-row">
+            <label for="inputOutputDir" data-i18n="dest_dir">儲存目標路徑 (Destination Directory)</label>
+          </div>
+          <div class="input-with-icon">
+            <input type="text" id="inputOutputDir" class="form-control" placeholder="/home/hanson/下載">
+            <button type="button" class="btn-browse" id="btnBrowseDir">
+              <span id="btnBrowseIcon">📂</span> <span id="btnBrowseText" data-i18n="btn_browse">瀏覽...</span>
+            </button>
+          </div>
+          <!-- Quick System Paths -->
+          <div class="quick-paths-container">
+            <span class="quick-paths-label" data-i18n="quick_paths">常用路徑：</span>
+            <button type="button" class="path-chip" data-type="downloads" data-i18n="path_downloads">⬇️ 下載</button>
+            <button type="button" class="path-chip" data-type="desktop" data-i18n="path_desktop">🖥️ 桌面</button>
+            <button type="button" class="path-chip" data-type="documents" data-i18n="path_documents">📄 文件</button>
+            <button type="button" class="path-chip" data-type="videos" data-i18n="path_videos">🎬 影片</button>
+            <button type="button" class="path-chip" data-type="music" data-i18n="path_music">🎵 音樂</button>
+          </div>
+        </div>
+
+        <!-- Manual Controls Group (Toggled in Manual Mode) -->
+        <div class="form-row" id="manualControlsGroup" style="display: none;">
+          <div class="form-group flex-1">
+            <label for="selectConnections" data-i18n="threads_label">並行連線線程數 (Parallel Threads)</label>
+            <select id="selectConnections" class="form-control">
+              <option value="4" data-i18n="thread_4">4 併發連線 (低負載模式)</option>
+              <option value="8" data-i18n="thread_8">8 併發連線 (均衡傳輸模式)</option>
+              <option value="16" data-i18n="thread_16">16 併發連線 (標準多線程)</option>
+              <option value="32" data-i18n="thread_32">32 併發連線 (高速並行傳輸)</option>
+              <option value="64" selected data-i18n="thread_64">64 併發連線 (極速多路復用 - 推薦)</option>
+              <option value="128" data-i18n="thread_128">128 併發連線 (極限頻寬滿載)</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="selectSpeedLimit" data-i18n="speed_limit_label">頻寬速限控制 (Speed Limiter)</label>
+            <select id="selectSpeedLimit" class="form-control">
+              <option value="0" selected data-i18n="speed_unlimited">無限制 (全速傳輸)</option>
+              <option value="104857600" data-i18n="speed_100m">100 MB/s (1 Gbps 上限)</option>
+              <option value="52428800" data-i18n="speed_50m">50 MB/s (高速上限)</option>
+              <option value="20971520" data-i18n="speed_20m">20 MB/s (中速上限)</option>
+              <option value="10485760" data-i18n="speed_10m">10 MB/s (背景平穩傳輸)</option>
+              <option value="5242880" data-i18n="speed_5m">5 MB/s (低頻寬佔用)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Comprehensive Advanced Expandable Section -->
+        <div class="advanced-section">
+          <div class="advanced-header" id="btnToggleAdvanced">
+            <div class="advanced-header-title">
+              <span data-i18n="adv_toggle">⚙️ 進階傳輸與自動化設定</span>
+              <span class="badge-mini" id="advBadge" data-i18n="adv_badge_configured">已調用專業參數</span>
+            </div>
+            <span class="arrow-icon" id="advancedArrow">▼</span>
+          </div>
+
+          <div class="advanced-content" id="advancedContent" style="display: none;">
+            <!-- Group 1: HTTP Headers & Auth -->
+            <div class="advanced-card">
+              <div class="advanced-card-header" data-i18n="adv_sec_http">🌐 HTTP 網路標頭與授權驗證</div>
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="inputReferer" data-i18n="adv_referer_label">來源參照位址 (HTTP Referer)</label>
+                  <input type="text" id="inputReferer" class="form-control" data-i18n-placeholder="adv_referer_ph" placeholder="自動捕獲，防止防盜鏈 403 阻擋">
+                </div>
+                <div class="form-group flex-1">
+                  <label for="selectUserAgent" data-i18n="adv_ua_label">客戶端識別碼 (User-Agent)</label>
+                  <select id="selectUserAgent" class="form-control">
+                    <option value="default" selected data-i18n="adv_ua_default">預設 (DPLS-Fast 雙模加速)</option>
+                    <option value="chrome" data-i18n="adv_ua_chrome">Google Chrome 原生標識</option>
+                    <option value="idm" data-i18n="adv_ua_idm">IDM (Internet Download Manager)</option>
+                    <option value="curl" data-i18n="adv_ua_curl">cURL / 伺服器終端標識</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top: 6px;">
+                <label for="inputCookies" data-i18n="adv_cookies_label">站點工作階段憑證 (Session Cookies)</label>
+                <input type="text" id="inputCookies" class="form-control" data-i18n-placeholder="adv_cookies_ph" placeholder="已自動從瀏覽器提取當前站點 Cookies (支援登入/網盤下載)">
+              </div>
+            </div>
+
+            <!-- Group 2: Network Fault Tolerance & Slicing -->
+            <div class="advanced-card">
+              <div class="advanced-card-header" data-i18n="adv_sec_network">⚡ 網路容錯與分段切分策略</div>
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="selectTimeout" data-i18n="adv_timeout_label">連線逾時時間 (Timeout)</label>
+                  <select id="selectTimeout" class="form-control">
+                    <option value="15" data-i18n="adv_timeout_15s">15 秒 (高敏銳快速重試)</option>
+                    <option value="30" selected data-i18n="adv_timeout_30s">30 秒 (標準平衡模式)</option>
+                    <option value="60" data-i18n="adv_timeout_60s">60 秒 (慢速伺服器寬容)</option>
+                    <option value="120" data-i18n="adv_timeout_120s">120 秒 (極度寬容長連線)</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="selectRetries" data-i18n="adv_retries_label">中斷自動重試次數 (Auto Retries)</label>
+                  <select id="selectRetries" class="form-control">
+                    <option value="0" data-i18n="adv_retries_0">不重試 (立即報錯)</option>
+                    <option value="3" data-i18n="adv_retries_3">重試 3 次</option>
+                    <option value="5" selected data-i18n="adv_retries_5">重試 5 次 (推薦預設)</option>
+                    <option value="10" data-i18n="adv_retries_10">重試 10 次 (強韌容錯)</option>
+                    <option value="999" data-i18n="adv_retries_inf">無限次重試 (持續守護)</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="selectMinChunk" data-i18n="adv_chunk_label">動態切分最小區塊 (Min Segment)</label>
+                  <select id="selectMinChunk" class="form-control">
+                    <option value="1048576" data-i18n="adv_chunk_1m">1 MB (適用高速小分段)</option>
+                    <option value="2097152" selected data-i18n="adv_chunk_2m">2 MB (推薦標準區塊)</option>
+                    <option value="5242880" data-i18n="adv_chunk_5m">5 MB (高吞吐低中斷)</option>
+                    <option value="10485760" data-i18n="adv_chunk_10m">10 MB (適用超大型檔案)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group 3: Disk I/O & Automation -->
+            <div class="advanced-card">
+              <div class="advanced-card-header" data-i18n="adv_sec_disk">💾 磁碟 I/O 與自動化工作流程</div>
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="selectCollisionPolicy" data-i18n="collision_policy_label">同名檔案衝突策略</label>
+                  <select id="selectCollisionPolicy" class="form-control">
+                    <option value="auto_rename" selected data-i18n="collision_auto_rename">自動遞增重命名 (例: file (1).ext)</option>
+                    <option value="overwrite" data-i18n="collision_overwrite">覆蓋現有檔案</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label for="inputExpectedHash" data-i18n="expected_hash_label">預期 SHA-256 校驗碼 (選填)</label>
+                  <input type="text" id="inputExpectedHash" class="form-control" data-i18n-placeholder="expected_hash_ph" placeholder="選填，傳輸完成後自動驗證">
+                </div>
+              </div>
+
+              <!-- Post-Download Actions -->
+              <div class="checkbox-group" style="margin-top: 8px;">
+                <div class="checkbox-item">
+                  <input type="checkbox" id="chkAutoOpenFile">
+                  <label for="chkAutoOpenFile" data-i18n="auto_open_file">傳輸完成後自動開啟檔案</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="chkAutoOpenDir">
+                  <label for="chkAutoOpenDir" data-i18n="auto_open_dir">傳輸完成後自動開啟所在目錄</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="chkAutoClose">
+                  <label for="chkAutoClose" data-i18n="auto_close">傳輸完成後自動關閉此視窗</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="chkRemember" checked>
+                  <label for="chkRemember" data-i18n="remember_prefs">記住我的預設下載偏好</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-cancel" id="btnCancel" data-i18n="btn_cancel">❌ 取消</button>
+        <div class="action-group">
+          <button type="button" class="btn btn-later" id="btnDownloadLater" data-i18n="btn_queue">⏳ 排入待傳佇列</button>
+          <button type="button" class="btn btn-primary" id="btnDownloadNow" data-i18n="btn_start">🚀 開始傳輸</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 2: IN-WINDOW LIVE DOWNLOAD PROGRESS ==================== -->
+    <div class="dialog-container" id="progressView" style="display: none;">
+      <!-- Progress Header -->
+      <div class="dialog-header">
+        <div class="brand">
+          <div class="logo-icon pulse-icon">⚡</div>
+          <div class="brand-text">
+            <div class="title" id="dlTargetFilename" data-i18n="dl_preparing">正在準備傳輸...</div>
+            <div class="subtitle" id="dlTargetPath" data-i18n="dl_dir_preparing">儲存目錄準備中</div>
+          </div>
+        </div>
+        <div class="header-controls">
+          <select id="selectLanguageProgress" class="glass-select lang-picker" title="語言 / Language">
+            <option value="zh-TW">繁體中文</option>
+            <option value="zh-CN">简体中文</option>
+            <option value="en-US">English</option>
+            <option value="ja-JP">日本語</option>
+          </select>
+          <div class="badge-tag" id="dlStatusBadge">傳輸中 (64 連線)</div>
+        </div>
+      </div>
+
+      <!-- Live Download Body -->
+      <div class="dialog-body">
+        <!-- Big Progress Bar Card -->
+        <div class="progress-hero-card">
+          <div class="progress-hero-header">
+            <span class="progress-hero-title" id="dlStatusDetail" data-i18n="dl_detail_active">正在執行多路復用並行傳輸...</span>
+            <span class="progress-hero-percent" id="dlPercent">0.0%</span>
+          </div>
+
+          <div class="main-progress-bar">
+            <div class="main-progress-fill" id="progressBarFill" style="width: 0%;">
+              <div class="liquid-sheen"></div>
+            </div>
+          </div>
+
+          <div class="progress-hero-footer">
+            <span id="dlBytesText">0 B / 計算中...</span>
+            <span id="dlConnectionsText">64 併發連線滿載</span>
+          </div>
+        </div>
+
+        <!-- Speed & ETA Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-box-label" data-i18n="rate_label">傳輸速率 (Rate)</span>
+            <span class="stat-box-val speed-val" id="dlSpeed">0.0 MB/s</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-label" data-i18n="eta_label">剩餘時間 (ETA)</span>
+            <span class="stat-box-val" id="dlEta">計算中...</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-label" data-i18n="mode_label">傳輸模式</span>
+            <span class="stat-box-val" id="dlRangeStatus" data-i18n="mode_range">多路分段加速</span>
+          </div>
+        </div>
+
+        <!-- IDM Dynamic Segment Visualizer Bar -->
+        <div class="segment-visualizer-box">
+          <div class="segment-box-header">
+            <span data-i18n="monitor_title">⚡ 分段傳輸動態監控 (Segment Transmission Monitor)</span>
+            <span id="dlSegmentCount">分段數: 0</span>
+          </div>
+          <div class="segment-bar" id="dlSegmentBar">
+            <div class="segment-placeholder" data-i18n="segment_slicing">正在劃分分段磁區...</div>
+          </div>
+        </div>
+
+        <!-- Hash Result Banner (Shows on Completed) -->
+        <div class="hash-banner" id="dlHashBanner" style="display: none;">
+          <div class="hash-label" data-i18n="hash_title">SHA-256 完整性校驗碼：</div>
+          <div class="hash-value-row">
+            <code id="dlHashValue" data-i18n="hash_verifying">正在校驗中...</code>
+            <button type="button" class="icon-btn-small" id="btnCopyHash" title="複製 SHA-256">📋</button>
+          </div>
+          <div id="dlHashMatchStatus" style="font-size: 0.75rem; margin-top: 4px;"></div>
+        </div>
+      </div>
+
+      <!-- Progress Action Buttons -->
+      <div class="dialog-footer">
+        <!-- Active state actions -->
+        <div id="activeActions" style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+          <button type="button" class="btn btn-cancel" id="btnDlMinimize" title="最小化至背景，傳輸將在後台持續進行" data-i18n="btn_minimize">📥 最小化至背景</button>
+          <div class="action-group">
+            <button type="button" class="btn btn-cancel" id="btnDlCancel" data-i18n="btn_abort">❌ 終止任務</button>
+            <button type="button" class="btn btn-later" id="btnDlPauseResume" data-i18n="btn_pause">⏸ 暫停傳輸</button>
+          </div>
+        </div>
+
+        <!-- Completed state actions -->
+        <div id="completedActions" style="display: none; width: 100%; justify-content: space-between; align-items: center;">
+          <button type="button" class="btn btn-cancel" id="btnDlClose" data-i18n="btn_close">關閉視窗</button>
+          <div class="action-group">
+            <button type="button" class="btn btn-later" id="btnDlOpenDir" data-i18n="btn_open_dir">📁 開啟所在目錄</button>
+            <button type="button" class="btn btn-primary" id="btnDlOpenFile" data-i18n="btn_open_file">📂 開啟檔案</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="dialog.js"></script>
+</body>
+</html>
