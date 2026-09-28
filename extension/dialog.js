@@ -116,12 +116,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (selectLanguage) selectLanguage.value = activeLang;
   if (selectLanguageProgress) selectLanguageProgress.value = activeLang;
   setLanguage(activeLang);
+  if (window.initCustomSelects) {
+    window.initCustomSelects();
+  }
 
   function handleLanguageChange(newLang) {
     activeLang = newLang;
     if (selectLanguage) selectLanguage.value = newLang;
     if (selectLanguageProgress) selectLanguageProgress.value = newLang;
     setLanguage(newLang);
+    document.querySelectorAll('select').forEach(sel => {
+      if (sel._syncCustomSelect) sel._syncCustomSelect();
+    });
     updateThreadTag(selectConnections.value);
     if (lastProbeData) {
       updateAutoTuneCard(lastProbeData.total_size, lastProbeData.supports_range);

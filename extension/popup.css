@@ -248,3 +248,143 @@ input:checked + .slider:before {
 .btn-primary:hover {
   filter: brightness(1.1);
 }
+
+/* ========================================================
+   Liquid Glass Custom Dropdown (自製毛玻璃下拉選單)
+   ======================================================== */
+.dpls-hidden-select {
+  position: absolute !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  margin: -1px !important;
+  padding: 0 !important;
+}
+
+.dpls-select-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.dpls-select-trigger {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  text-align: left;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+
+.dpls-select-trigger:focus,
+.dpls-select-trigger.is-open {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.25) !important;
+}
+
+.dpls-select-val {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.dpls-select-arrow {
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
+  flex-shrink: 0;
+}
+.dpls-select-trigger:hover .dpls-select-arrow,
+.dpls-select-trigger.is-open .dpls-select-arrow {
+  color: var(--accent);
+}
+.dpls-select-trigger.is-open .dpls-select-arrow {
+  transform: rotate(180deg);
+}
+
+.dpls-select-menu {
+  position: fixed;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(88, 166, 255, 0.4);
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  padding: 4px;
+  z-index: 999999;
+  max-height: 200px;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
+  box-sizing: border-box;
+}
+
+.dpls-select-menu.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.dpls-select-menu::-webkit-scrollbar {
+  width: 4px;
+}
+.dpls-select-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dpls-select-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.dpls-select-option {
+  padding: 7px 10px;
+  font-size: 0.8rem;
+  color: var(--text-main);
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all 0.15s ease;
+  margin-bottom: 2px;
+  user-select: none;
+}
+.dpls-select-option:last-child {
+  margin-bottom: 0;
+}
+.dpls-select-option:hover {
+  background: rgba(88, 166, 255, 0.18);
+  color: var(--accent);
+}
+.dpls-select-option.is-selected {
+  background: rgba(88, 166, 255, 0.25);
+  color: var(--accent);
+  font-weight: 600;
+}
+.dpls-select-check {
+  font-size: 0.85rem;
+  color: var(--accent);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.15s ease;
+}
+.dpls-select-option.is-selected .dpls-select-check {
+  opacity: 1;
+  transform: scale(1);
+}
+

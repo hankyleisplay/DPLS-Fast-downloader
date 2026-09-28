@@ -609,8 +609,166 @@
       cursor: pointer;
       padding: 2px 6px;
     }
-    .btn-close-toast:hover {
-      color: #fff;
+    /* ========================================================
+       Liquid Glass Custom Dropdown (自製毛玻璃下拉選單)
+       ======================================================== */
+    .dpls-hidden-select {
+      position: absolute !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      width: 1px !important;
+      height: 1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+      margin: -1px !important;
+      padding: 0 !important;
+    }
+
+    .dpls-select-wrapper {
+      position: relative;
+      display: block;
+      width: 100%;
+    }
+    .dpls-select-wrapper.inline-select {
+      display: inline-block;
+      width: auto;
+    }
+
+    .dpls-select-trigger {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      cursor: pointer !important;
+      user-select: none !important;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      text-align: left;
+      outline: none !important;
+    }
+
+    .dpls-select-trigger:focus,
+    .dpls-select-trigger.is-open {
+      border-color: #58a6ff !important;
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.25) !important;
+    }
+
+    .dpls-select-wrapper.inline-select .dpls-select-trigger {
+      background: transparent !important;
+      border: 1px solid transparent !important;
+      color: #58a6ff !important;
+      padding: 2px 6px !important;
+      font-weight: 700 !important;
+      border-radius: 4px !important;
+      box-shadow: none !important;
+      gap: 6px;
+    }
+    .dpls-select-wrapper.inline-select .dpls-select-trigger:hover,
+    .dpls-select-wrapper.inline-select .dpls-select-trigger.is-open {
+      background: rgba(88, 166, 255, 0.12) !important;
+      border-color: rgba(88, 166, 255, 0.3) !important;
+    }
+
+    .dpls-select-val {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .dpls-select-arrow {
+      margin-left: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #8b949e;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
+      flex-shrink: 0;
+    }
+    .dpls-select-trigger:hover .dpls-select-arrow,
+    .dpls-select-trigger.is-open .dpls-select-arrow {
+      color: #58a6ff;
+    }
+    .dpls-select-trigger.is-open .dpls-select-arrow {
+      transform: rotate(180deg);
+    }
+
+    .dpls-select-menu {
+      position: fixed;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(88, 166, 255, 0.4);
+      border-radius: 10px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      padding: 6px;
+      z-index: 999999;
+      max-height: 250px;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
+      box-sizing: border-box;
+    }
+
+    .dpls-select-menu.is-open {
+      opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
+    }
+
+    .dpls-select-menu::-webkit-scrollbar {
+      width: 5px;
+    }
+    .dpls-select-menu::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .dpls-select-menu::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+    }
+    .dpls-select-menu::-webkit-scrollbar-thumb:hover {
+      background: rgba(88, 166, 255, 0.5);
+    }
+
+    .dpls-select-option {
+      padding: 8px 12px;
+      font-size: 0.86rem;
+      color: var(--text-main);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+      user-select: none;
+    }
+    .dpls-select-option:last-child {
+      margin-bottom: 0;
+    }
+    .dpls-select-option:hover {
+      background: rgba(88, 166, 255, 0.18);
+      color: #58a6ff;
+      transform: translateX(3px);
+    }
+    .dpls-select-option.is-selected {
+      background: rgba(88, 166, 255, 0.24);
+      color: #58a6ff;
+      font-weight: 600;
+    }
+    .dpls-select-check {
+      font-size: 0.9rem;
+      color: #58a6ff;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: all 0.15s ease;
+    }
+    .dpls-select-option.is-selected .dpls-select-check {
+      opacity: 1;
+      transform: scale(1);
     }
   </style>
 </head>
@@ -1533,8 +1691,196 @@
       }
     });
 
+    // ========================================================
+    // Liquid Glass Custom Select Enhancer (自製毛玻璃自定義下拉選單)
+    // ========================================================
+    function closeAllCustomSelects() {
+      document.querySelectorAll('.dpls-select-trigger.is-open').forEach(el => el.classList.remove('is-open'));
+      document.querySelectorAll('.dpls-select-menu.is-open').forEach(el => el.classList.remove('is-open'));
+    }
+
+    function enhanceSelect(selectEl, isInline = false) {
+      if (!selectEl || selectEl._customEnhanced) return;
+      selectEl._customEnhanced = true;
+
+      selectEl.classList.add('dpls-hidden-select');
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'dpls-select-wrapper' + (isInline ? ' inline-select' : '');
+
+      const trigger = document.createElement('div');
+      const inheritedClass = selectEl.className.replace('dpls-hidden-select', '').trim();
+      trigger.className = 'dpls-select-trigger ' + (inheritedClass || 'form-control');
+      trigger.setAttribute('tabindex', '0');
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'dpls-select-val';
+
+      const arrowSpan = document.createElement('span');
+      arrowSpan.className = 'dpls-select-arrow';
+      arrowSpan.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+
+      trigger.appendChild(textSpan);
+      trigger.appendChild(arrowSpan);
+
+      selectEl.parentNode.insertBefore(wrapper, selectEl);
+      wrapper.appendChild(selectEl);
+      wrapper.appendChild(trigger);
+
+      const menu = document.createElement('div');
+      menu.className = 'dpls-select-menu';
+      document.body.appendChild(menu);
+
+      function syncText() {
+        const selOpt = selectEl.options[selectEl.selectedIndex] || selectEl.options[0];
+        textSpan.textContent = selOpt ? selOpt.text : '';
+      }
+
+      function renderOptions() {
+        syncText();
+        menu.innerHTML = '';
+        Array.from(selectEl.options).forEach((opt, idx) => {
+          const optDiv = document.createElement('div');
+          optDiv.className = 'dpls-select-option' + (opt.value === selectEl.value ? ' is-selected' : '');
+          optDiv.dataset.value = opt.value;
+          optDiv.dataset.index = idx;
+
+          const label = document.createElement('span');
+          label.textContent = opt.text;
+
+          const check = document.createElement('span');
+          check.className = 'dpls-select-check';
+          check.textContent = '✓';
+
+          optDiv.appendChild(label);
+          optDiv.appendChild(check);
+
+          optDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (selectEl.value !== opt.value) {
+              selectEl.value = opt.value;
+              syncText();
+              selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+              if (typeof selectEl.onchange === 'function') {
+                selectEl.onchange();
+              }
+            }
+            closeMenu();
+          });
+
+          menu.appendChild(optDiv);
+        });
+      }
+
+      function openMenu() {
+        closeAllCustomSelects();
+        renderOptions();
+
+        const rect = trigger.getBoundingClientRect();
+        const menuHeight = Math.min(selectEl.options.length * 36 + 14, 250);
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+
+        let top;
+        if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+          top = rect.top - menuHeight - 6;
+          menu.style.transformOrigin = 'bottom left';
+        } else {
+          top = rect.bottom + 6;
+          menu.style.transformOrigin = 'top left';
+        }
+        if (top < 10) top = 10;
+
+        const minW = isInline ? Math.max(rect.width, 130) : rect.width;
+        menu.style.top = `${top}px`;
+        menu.style.minWidth = `${minW}px`;
+
+        const maxRight = window.innerWidth - 10;
+        if (rect.left + minW > maxRight) {
+          menu.style.left = 'auto';
+          menu.style.right = `${window.innerWidth - rect.right}px`;
+        } else {
+          menu.style.left = `${Math.max(10, rect.left)}px`;
+          menu.style.right = 'auto';
+        }
+
+        trigger.classList.add('is-open');
+        menu.classList.add('is-open');
+
+        const activeItem = menu.querySelector('.dpls-select-option.is-selected');
+        if (activeItem) {
+          activeItem.scrollIntoView({ block: 'nearest' });
+        }
+      }
+
+      function closeMenu() {
+        trigger.classList.remove('is-open');
+        menu.classList.remove('is-open');
+      }
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (menu.classList.contains('is-open')) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+      });
+
+      trigger.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          trigger.click();
+        } else if (e.key === 'Escape') {
+          closeMenu();
+        }
+      });
+
+      selectEl.addEventListener('change', syncText);
+
+      const desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+      Object.defineProperty(selectEl, 'value', {
+        get() {
+          return desc.get.call(this);
+        },
+        set(v) {
+          desc.set.call(this, v);
+          syncText();
+        }
+      });
+
+      syncText();
+
+      selectEl._syncCustomSelect = () => {
+        syncText();
+        if (menu.classList.contains('is-open')) renderOptions();
+      };
+      selectEl._closeCustomSelect = closeMenu;
+    }
+
+    function initCustomSelects() {
+      document.querySelectorAll('select').forEach(sel => {
+        const isInline = sel.id === 'selectMaxConcurrent' || Boolean(sel.closest('.queue-setting-pill'));
+        enhanceSelect(sel, isInline);
+      });
+    }
+
+    window.addEventListener('click', (e) => {
+      if (!e.target.closest('.dpls-select-trigger') && !e.target.closest('.dpls-select-menu')) {
+        closeAllCustomSelects();
+      }
+    });
+    window.addEventListener('scroll', () => {
+      closeAllCustomSelects();
+    }, true);
+    window.addEventListener('resize', closeAllCustomSelects);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllCustomSelects();
+    });
+
     // Init
     window.addEventListener('load', () => {
+      initCustomSelects();
       resizeCanvas();
       loadTasks();
       initWebSocket();

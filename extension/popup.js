@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (toggleSniffer) toggleSniffer.checked = config.mediaSniffer !== false;
   selectConn.value = config.connections.toString();
   inputExts.value = config.extensions.join(', ');
+  if (window.initCustomSelects) {
+    window.initCustomSelects();
+  }
 
   // Save changes
   toggleAuto.addEventListener('change', () => {
