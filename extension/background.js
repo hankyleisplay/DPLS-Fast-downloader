@@ -99,8 +99,8 @@ async function handleDownloadTrigger(url, filename = null, referer = null) {
     );
     try {
       // Spacious modern desktop dialog dimensions (ensuring zero button squeeze)
-      const width = 780;
-      const height = 670;
+      const width = 800;
+      const height = 720;
 
       let left = 200;
       let top = 100;

@@ -310,8 +310,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     advancedArrow.classList.toggle('rotated', isHidden);
     if (isHidden) {
       setTimeout(() => {
-        advancedContent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 50);
+        advancedContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 60);
     }
   });
 

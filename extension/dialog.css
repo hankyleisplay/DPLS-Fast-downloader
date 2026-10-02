@@ -88,12 +88,17 @@ input[type="checkbox"]:checked {
   user-select: none;
 }
 
+html, body {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 body {
   background: radial-gradient(circle at 15% 15%, #0d121c 0%, #07090e 65%, #030407 100%);
   color: var(--text-main);
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   backdrop-filter: blur(28px) saturate(190%);
@@ -106,15 +111,18 @@ body {
   display: flex;
   flex-direction: column;
   background: rgba(15, 23, 42, 0.35);
+  overflow: hidden;
 }
 
 .dialog-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 18px 24px;
-  justify-content: space-between;
+  max-height: 100vh;
+  padding: 16px 24px;
   gap: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* ==================== HEADER ==================== */
@@ -246,22 +254,35 @@ body {
 
 /* ==================== BODY ==================== */
 .dialog-body {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 6px 0;
-  overflow-y: auto;
+  gap: 12px;
+  padding: 4px 6px 14px 2px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: rgba(var(--theme-accent-rgb), 0.5) rgba(255, 255, 255, 0.05);
 }
 
 .dialog-body::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
+}
+
+.dialog-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
 }
 
 .dialog-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(var(--theme-accent-rgb), 0.5);
   border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dialog-body::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-accent);
 }
 
 /* Probe Banner */
@@ -1057,6 +1078,7 @@ input[type="checkbox"]:active {
   position: relative;
   gap: 14px;
   flex-shrink: 0;
+  margin-top: auto;
 }
 
 .action-group {
