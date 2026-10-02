@@ -13,7 +13,8 @@ mkdir -p "$DIST_DIR"
 # 1. Package Browser Extension
 echo "🧩 打包瀏覽器擴充功能 (Chrome/Edge/Brave)..."
 cd "$ROOT_DIR/extension"
-zip -r "$DIST_DIR/dpls-fast-extension-v1.2.zip" ./* -x "*.DS_Store"
+zip -r "$DIST_DIR/dpls-fast-extension-v1.3.zip" ./* -x "*.DS_Store"
+cp "$DIST_DIR/dpls-fast-extension-v1.3.zip" "$DIST_DIR/dpls-fast-extension-v1.2.zip"
 
 # 2. Package Linux Binaries & Self-contained Installer
 echo "🐧 打包 Linux 原生執行檔與安裝程式..."
