@@ -483,22 +483,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateAutoTuneCard(data.total_size, data.supports_range);
 
         probeSpinner.style.display = 'none';
+        probeBanner.classList.remove('warning');
         probeBanner.classList.add('success');
         probeStatusText.textContent = t('probe_ready');
         window.focus();
         return;
       }
     } catch (e) {
-      console.warn('[DPLS-Fast Dialog] Probe warning:', e);
+      console.debug('[DPLS-Fast Dialog] Server probe not reachable, using fallback:', e ? e.message : e);
     }
 
     probeSpinner.style.display = 'none';
-    probeStatusText.textContent = t('probe_fallback');
+    probeBanner.classList.remove('success');
+    probeBanner.classList.add('warning');
+    probeStatusText.textContent = t('probe_offline') || t('probe_fallback');
     if (!inputFilename.value) {
       inputFilename.value = extractBasenameFromUrl(targetUrl);
     }
     displayFileSize.textContent = t('unknown_size');
-    displayRangeSupport.textContent = t('range_probing');
+    displayRangeSupport.innerHTML = `<span style="color: #94a3b8;">${t('range_unknown') || '未知'}</span>`;
     updateAutoTuneCard(null, true);
     window.focus();
   }

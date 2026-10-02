@@ -183,22 +183,22 @@ if command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -f -t "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
 fi
 
-# 7. Restart Service if it was running or requested
-if [ "$WAS_RUNNING" -eq 1 ] && [ "$DO_RESTART" -eq 1 ]; then
-  echo "🚀 正在重新啟動 DPLS-Fast 背景常駐服務..."
-  env WEBKIT_DISABLE_DMABUF_RENDERER=1 nohup "$BIN_DIR/dpls-gui" >/dev/null 2>&1 &
+# 7. Restart Service if requested
+if [ "$DO_RESTART" -eq 1 ]; then
+  echo "🚀 正在確保 DPLS-Fast 背景常駐服務處於啟動狀態..."
+  setsid env WEBKIT_DISABLE_DMABUF_RENDERER=1 "$BIN_DIR/dpls-gui" </dev/null >/dev/null 2>&1 &
   
   STARTED=0
   for i in {1..10}; do
     sleep 0.5
-    if curl -s http://127.0.0.1:6800/api/settings/autostart >/dev/null 2>&1; then
+    if curl -s http://127.0.0.1:6800/api/settings/autostart >/dev/null 2>&1 || curl -s http://127.0.0.1:6800/api/tasks >/dev/null 2>&1; then
       STARTED=1
       break
     fi
   done
   
   if [ "$STARTED" -eq 1 ]; then
-    echo -e "  ✔ \033[1;32m背景常駐服務已成功重啟，通訊埠 6800 就緒！\033[0m"
+    echo -e "  ✔ \033[1;32m背景常駐服務已成功啟動，通訊埠 6800 就緒！\033[0m"
   else
     echo -e "  ℹ️ 背景服務已在背景啟動。"
   fi

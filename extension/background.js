@@ -130,7 +130,7 @@ async function handleDownloadTrigger(url, filename = null, referer = null) {
       }
       return;
     } catch (e) {
-      console.warn('[DPLS-Fast] Failed to open popup dialog:', e);
+      console.debug('[DPLS-Fast] Failed to open popup dialog:', e);
     }
   }
 
@@ -173,7 +173,7 @@ chrome.downloads.onDeterminingFilename.addListener(async (downloadItem, suggest)
       await chrome.downloads.cancel(downloadItem.id);
       await chrome.downloads.erase({ id: downloadItem.id });
     } catch (e) {
-      console.warn('[DPLS-Fast] Cancel error:', e);
+      console.debug('[DPLS-Fast] Cancel note:', e);
     }
 
     // Forward to IDM Dialog or DPLS-Fast
@@ -268,11 +268,11 @@ async function sendTaskToDPLS(url, filename = null, referer = null) {
       console.log('[DPLS-Fast] Task added successfully:', data);
       showNotification('⚡ DPLS-Fast 已接管下載', `已由 DPLS-Fast 開始極速多線程下載：\n${filename || url}`);
     } else {
-      console.error('[DPLS-Fast] Server error:', res.status);
+      console.debug('[DPLS-Fast] Server response status:', res.status);
       showNotification('❌ 下載接管失敗', `伺服器回應錯誤 (${res.status})，請檢查 DPLS-Fast 是否正常運行。`);
     }
   } catch (err) {
-    console.error('[DPLS-Fast] Cannot connect to server:', err);
+    console.debug('[DPLS-Fast] Cannot connect to server:', err ? err.message : err);
     showNotification('⚠️ 無法連線至 DPLS-Fast', '請確認 DPLS-Fast 桌面應用（./dpls-gui）已啟動！');
   }
 }

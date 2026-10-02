@@ -146,6 +146,10 @@ if command -v gtk-update-icon-cache >/dev/null 2>&1; then
   gtk-update-icon-cache -f -t "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
 fi
 
+# 9. Start background service
+echo "🚀 正在啟動 DPLS-Fast 背景常駐服務..."
+setsid env WEBKIT_DISABLE_DMABUF_RENDERER=1 "$BIN_DIR/dpls-gui" </dev/null >/dev/null 2>&1 &
+
 echo ""
 echo -e "\033[1;32m🎉 DPLS-Fast 安裝完成！\033[0m"
 echo -e "  🔹 執行檔位置: \033[1;37m$BIN_DIR/dpls-gui\033[0m 與 \033[1;37m$BIN_DIR/dpls\033[0m"

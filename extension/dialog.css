@@ -286,6 +286,12 @@ body {
   color: #34d399;
 }
 
+.probe-banner.warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
 .spinner {
   width: 14px;
   height: 14px;
