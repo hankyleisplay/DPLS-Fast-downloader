@@ -448,9 +448,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Probe target
   async function probeTarget() {
     if (!targetUrl) return;
+    // 1. Try local daemon probe
     try {
       const probeUrl = `${config.serverUrl}/api/probe?url=${encodeURIComponent(targetUrl)}`;
-      const res = await fetch(probeUrl);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch(probeUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
         lastProbeData = data;
@@ -493,12 +497,62 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.debug('[DPLS-Fast Dialog] Server probe not reachable, using fallback:', e ? e.message : e);
     }
 
+    // 2. Direct HEAD probe fallback (utilizing Chrome extension host permissions)
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await fetch(targetUrl, { method: 'HEAD', signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const cl = res.headers.get('content-length');
+        const cr = res.headers.get('accept-ranges');
+        const cd = res.headers.get('content-disposition');
+        let directFilename = null;
+        if (cd) {
+          const match = cd.match(/filename\*?=['"]?(?:UTF-8'')?([^"';]+)['"]?/i);
+          if (match && match[1]) {
+            directFilename = decodeURIComponent(match[1]);
+          }
+        }
+        if (!directFilename) {
+          directFilename = extractBasenameFromUrl(targetUrl);
+        }
+        if (directFilename && (!inputFilename.value || inputFilename.value === 'download.bin')) {
+          inputFilename.value = directFilename;
+          detectCategory(directFilename);
+        }
+        const totalSize = cl ? parseInt(cl, 10) : null;
+        if (totalSize) {
+          displayFileSize.textContent = formatBytes(totalSize);
+        } else {
+          displayFileSize.textContent = t('unknown_size');
+        }
+        const supportsRange = cr === 'bytes';
+        if (supportsRange) {
+          displayRangeSupport.innerHTML = `<span style="color: #34d399;">${t('range_yes')}</span>`;
+        } else {
+          displayRangeSupport.innerHTML = `<span style="color: #fbbf24;">${t('range_no')}</span>`;
+        }
+        updateAutoTuneCard(totalSize, supportsRange);
+        probeSpinner.style.display = 'none';
+        probeBanner.classList.remove('warning');
+        probeBanner.classList.add('success');
+        probeStatusText.textContent = t('probe_ready');
+        window.focus();
+        return;
+      }
+    } catch (headErr) {
+      console.debug('[DPLS-Fast Dialog] Direct probe note:', headErr ? headErr.message : headErr);
+    }
+
+    // 3. Fallback when probe is offline or unavailable
     probeSpinner.style.display = 'none';
     probeBanner.classList.remove('success');
     probeBanner.classList.add('warning');
     probeStatusText.textContent = t('probe_offline') || t('probe_fallback');
-    if (!inputFilename.value) {
+    if (!inputFilename.value || inputFilename.value === 'download.bin') {
       inputFilename.value = extractBasenameFromUrl(targetUrl);
+      detectCategory(inputFilename.value);
     }
     displayFileSize.textContent = t('unknown_size');
     displayRangeSupport.innerHTML = `<span style="color: #94a3b8;">${t('range_unknown') || '未知'}</span>`;
