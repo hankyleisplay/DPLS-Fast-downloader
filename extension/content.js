@@ -1,11 +1,37 @@
 // DPLS-Fast Content Script: IDM-like click interceptor
 
 const DEFAULT_EXTENSIONS = new Set([
-  'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso', 'img', 'dmg',
-  'exe', 'msi', 'deb', 'rpm', 'apk', 'pkg',
-  'mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm',
-  'mp3', 'flac', 'wav', 'aac', 'ogg',
-  'pdf', 'epub', 'bin', 'torrent'
+  // Web Documents & Structured Files
+  'html', 'htm', 'xhtml', 'mhtml',
+  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+  'txt', 'rtf', 'csv', 'epub', 'mobi', 'azw3',
+  'odt', 'ods', 'odp', 'xml', 'json',
+
+  // Compressed Packages & Archives
+  'zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'tbz2', 'xz', 'txz',
+  'z', 'lz', 'lzma', 'lzh', 'cab', 'arj', 'wim',
+
+  // Disk Images & Virtualization
+  'iso', 'img', 'dmg', 'vhd', 'vhdx', 'vdi', 'qcow2', 'nrg', 'cue', 'bin',
+
+  // Executables, Installers & Packages
+  'exe', 'msi', 'deb', 'rpm', 'apk', 'pkg', 'appimage', 'flatpak', 'snap',
+  'run', 'sh', 'bat', 'cmd', 'ps1', 'jar', 'war', 'ipa',
+
+  // Video Streams & Media
+  'mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm', 'm4v', '3gp',
+  'ts', 'm2ts', 'vob', 'f4v', 'rm', 'rmvb', 'asf', 'ogv',
+
+  // Audio & Hi-Fi Streams
+  'mp3', 'flac', 'wav', 'aac', 'ogg', 'm4a', 'opus', 'ape', 'alac',
+  'mid', 'midi', 'wma',
+
+  // High-Res Images & Creative Assets
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff', 'tif',
+  'psd', 'ai', 'raw', 'cr2', 'nef',
+
+  // Torrents, Database & Raw Data
+  'torrent', 'dat', 'db', 'sqlite', 'sql', 'bak'
 ]);
 
 let config = {
@@ -59,6 +85,15 @@ document.addEventListener('click', (e) => {
 
   const ext = getFileExtension(href);
   const hasDownloadAttr = a.hasAttribute('download');
+
+  // Web document extensions (e.g. html, htm, php): only intercept in content script if explicit download attribute is present or interceptAll is on.
+  // This avoids hijacking normal in-browser web page navigation.
+  // Real file downloads of .html files are captured by Chrome's onDeterminingFilename in background.js.
+  const isWebDoc = ['html', 'htm', 'xhtml', 'mhtml', 'php', 'asp', 'aspx', 'jsp'].includes(ext);
+  if (isWebDoc && !hasDownloadAttr && !config.interceptAll) {
+    return;
+  }
+
   const isMatch = config.interceptAll || hasDownloadAttr || (ext && config.extensions.includes(ext));
 
   if (isMatch) {

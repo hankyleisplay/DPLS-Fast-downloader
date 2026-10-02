@@ -10,10 +10,10 @@
     "windows": [
       {
         "title": "⚡ DPLS-Fast | 極速下載器",
-        "width": 1100,
-        "height": 760,
-        "minWidth": 800,
-        "minHeight": 600,
+        "width": 1260,
+        "height": 840,
+        "minWidth": 960,
+        "minHeight": 650,
         "resizable": true,
         "fullscreen": false
       }

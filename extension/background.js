@@ -5,20 +5,52 @@ const DEFAULT_CONFIG = {
   connections: 64,
   serverUrl: 'http://127.0.0.1:6800',
   extensions: [
-    'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso', 'img', 'dmg',
-    'exe', 'msi', 'deb', 'rpm', 'apk', 'pkg',
-    'mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm',
-    'mp3', 'flac', 'wav', 'aac', 'ogg',
-    'pdf', 'epub', 'bin', 'torrent'
+    // Web Documents & Structured Files
+    'html', 'htm', 'xhtml', 'mhtml',
+    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+    'txt', 'rtf', 'csv', 'epub', 'mobi', 'azw3',
+    'odt', 'ods', 'odp', 'xml', 'json',
+
+    // Compressed Packages & Archives
+    'zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'tbz2', 'xz', 'txz',
+    'z', 'lz', 'lzma', 'lzh', 'cab', 'arj', 'wim',
+
+    // Disk Images & Virtualization
+    'iso', 'img', 'dmg', 'vhd', 'vhdx', 'vdi', 'qcow2', 'nrg', 'cue', 'bin',
+
+    // Executables, Installers & Packages
+    'exe', 'msi', 'deb', 'rpm', 'apk', 'pkg', 'appimage', 'flatpak', 'snap',
+    'run', 'sh', 'bat', 'cmd', 'ps1', 'jar', 'war', 'ipa',
+
+    // Video Streams & Media
+    'mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm', 'm4v', '3gp',
+    'ts', 'm2ts', 'vob', 'f4v', 'rm', 'rmvb', 'asf', 'ogv',
+
+    // Audio & Hi-Fi Streams
+    'mp3', 'flac', 'wav', 'aac', 'ogg', 'm4a', 'opus', 'ape', 'alac',
+    'mid', 'midi', 'wma',
+
+    // High-Res Images & Creative Assets
+    'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff', 'tif',
+    'psd', 'ai', 'raw', 'cr2', 'nef',
+
+    // Torrents, Database & Raw Data
+    'torrent', 'dat', 'db', 'sqlite', 'sql', 'bak'
   ]
 };
 
 const interceptedDownloadIds = new Set();
 
-// Initialize on install
+// Initialize on install or extension update
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(DEFAULT_CONFIG, (stored) => {
-    chrome.storage.local.set(stored);
+    // Merge new default extensions (e.g. html, doc, etc.) with any existing user configuration
+    const existing = stored.extensions || [];
+    const mergedExtensions = Array.from(new Set([...existing, ...DEFAULT_CONFIG.extensions]));
+    chrome.storage.local.set({
+      ...stored,
+      extensions: mergedExtensions
+    });
   });
 
   // Create Context Menus
@@ -66,8 +98,9 @@ async function handleDownloadTrigger(url, filename = null, referer = null) {
       `dialog.html?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename || '')}&referer=${encodeURIComponent(referer || '')}`
     );
     try {
-      const width = 640;
-      const height = 590;
+      // Spacious modern desktop dialog dimensions (ensuring zero button squeeze)
+      const width = 780;
+      const height = 670;
 
       let left = 200;
       let top = 100;
@@ -184,6 +217,11 @@ function isDownloadMimeType(mime) {
     mime.includes('application/gzip') ||
     mime.includes('application/x-iso') ||
     mime.includes('application/octet-stream') ||
+    mime.includes('application/pdf') ||
+    mime.includes('application/x-msdownload') ||
+    mime.includes('application/x-apple-diskimage') ||
+    mime.includes('application/vnd.') ||
+    mime.includes('application/x-bittorrent') ||
     mime.startsWith('video/') ||
     mime.startsWith('audio/');
 }

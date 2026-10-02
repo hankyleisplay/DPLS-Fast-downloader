@@ -417,15 +417,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const extMatch = nameOrUrl.toLowerCase().match(/\.([a-z0-9]+)(?:[\?#]|$)/);
     if (!extMatch) return;
     const ext = extMatch[1];
-    if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso'].includes(ext)) {
+    if (['zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'tbz2', 'xz', 'txz', 'iso', 'img', 'cab', 'wim', 'arj', '7z'].includes(ext)) {
       selectCategory.value = 'compressed';
-    } else if (['mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm'].includes(ext)) {
+    } else if (['mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm', 'm4v', '3gp', 'ts', 'm2ts', 'vob', 'f4v', 'rmvb'].includes(ext)) {
       selectCategory.value = 'video';
-    } else if (['mp3', 'flac', 'wav', 'aac', 'ogg'].includes(ext)) {
+    } else if (['mp3', 'flac', 'wav', 'aac', 'ogg', 'm4a', 'opus', 'ape', 'alac', 'mid', 'wma'].includes(ext)) {
       selectCategory.value = 'audio';
-    } else if (['exe', 'msi', 'deb', 'rpm', 'apk', 'pkg', 'dmg'].includes(ext)) {
+    } else if (['exe', 'msi', 'deb', 'rpm', 'apk', 'pkg', 'dmg', 'appimage', 'flatpak', 'snap', 'run', 'jar', 'ipa'].includes(ext)) {
       selectCategory.value = 'programs';
-    } else if (['pdf', 'epub', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'].includes(ext)) {
+    } else if (['html', 'htm', 'xhtml', 'mhtml', 'pdf', 'epub', 'mobi', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'odt', 'ods', 'odp', 'xml', 'json'].includes(ext)) {
       selectCategory.value = 'documents';
     }
 

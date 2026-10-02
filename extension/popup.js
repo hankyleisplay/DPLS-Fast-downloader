@@ -19,7 +19,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     mediaSniffer: true,
     connections: 64,
     serverUrl: 'http://127.0.0.1:6800',
-    extensions: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso', 'img', 'dmg', 'exe', 'msi', 'deb', 'rpm', 'apk', 'pkg', 'mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm', 'mp3', 'flac', 'wav', 'aac', 'ogg', 'pdf', 'epub', 'bin', 'torrent']
+    extensions: [
+      'html', 'htm', 'xhtml', 'mhtml', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+      'txt', 'rtf', 'csv', 'epub', 'mobi', 'azw3', 'odt', 'ods', 'odp', 'xml', 'json',
+      'zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'tbz2', 'xz', 'txz', 'z', 'lz', 'lzma', 'lzh', 'cab', 'arj', 'wim',
+      'iso', 'img', 'dmg', 'vhd', 'vhdx', 'vdi', 'qcow2', 'nrg', 'cue', 'bin',
+      'exe', 'msi', 'deb', 'rpm', 'apk', 'pkg', 'appimage', 'flatpak', 'snap', 'run', 'sh', 'bat', 'cmd', 'ps1', 'jar', 'war', 'ipa',
+      'mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm', 'm4v', '3gp', 'ts', 'm2ts', 'vob', 'f4v', 'rm', 'rmvb', 'asf', 'ogv',
+      'mp3', 'flac', 'wav', 'aac', 'ogg', 'm4a', 'opus', 'ape', 'alac', 'mid', 'midi', 'wma',
+      'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff', 'tif', 'psd', 'ai', 'raw', 'cr2', 'nef',
+      'torrent', 'dat', 'db', 'sqlite', 'sql', 'bak'
+    ]
   });
 
   toggleAuto.checked = config.autoIntercept;
