@@ -1,26 +1,83 @@
 :root {
-  --bg-deep: rgba(13, 17, 23, 0.94);
-  --glass-bg: rgba(255, 255, 255, 0.035);
-  --glass-bg-hover: rgba(255, 255, 255, 0.07);
-  --glass-card: rgba(22, 27, 34, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-border-focus: rgba(56, 189, 248, 0.65);
-  --glass-specular: inset 0 1px 1px rgba(255, 255, 255, 0.18);
-  --glass-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  /* Obsidian Base & Dynamic Accent Theme */
+  --theme-accent: #0ea5e9;
+  --theme-accent-rgb: 14, 165, 233;
+  --theme-accent-glow: rgba(var(--theme-accent-rgb), 0.4);
+  --theme-accent-gradient: linear-gradient(135deg, rgba(var(--theme-accent-rgb), 0.95) 0%, rgba(var(--theme-accent-rgb), 0.7) 100%);
 
-  --text-main: #f0f6fc;
+  --bg-deep: #07090e;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-bg-hover: rgba(255, 255, 255, 0.08);
+  --glass-card: rgba(14, 18, 26, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-focus: var(--theme-accent);
+  --glass-specular: inset 0 1px 1px rgba(255, 255, 255, 0.22);
+  --glass-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+
+  --text-main: #ffffff;
   --text-sub: #94a3b8;
   --text-muted: #64748b;
 
-  --accent-cyan: #38bdf8;
-  --accent-cyan-glow: rgba(56, 189, 248, 0.35);
+  --accent-cyan: var(--theme-accent);
+  --accent-cyan-glow: var(--theme-accent-glow);
   --accent-emerald: #10b981;
   --accent-emerald-glow: rgba(16, 185, 129, 0.35);
   --accent-amber: #f59e0b;
   --accent-danger: #f43f5e;
 
-  --seg-active: #10b981;
+  --seg-active: var(--theme-accent);
   --seg-track: rgba(15, 23, 42, 0.7);
+}
+
+/* ========================================================
+   Apple Jelly / Spring Physics Animation (果凍彈力動效)
+   ======================================================== */
+@keyframes jelly-squish {
+  0% { transform: scale(1, 1); }
+  35% { transform: scale(0.92, 0.95); }
+  60% { transform: scale(1.05, 1.02); }
+  80% { transform: scale(0.98, 0.99); }
+  100% { transform: scale(1, 1); }
+}
+
+@keyframes jelly-pop {
+  0% { opacity: 0; transform: scale(0.88, 0.84) translateY(-8px); }
+  50% { transform: scale(1.04, 1.02) translateY(2px); }
+  75% { transform: scale(0.98, 0.99) translateY(-1px); }
+  100% { opacity: 1; transform: scale(1, 1) translateY(0); }
+}
+
+@keyframes jelly-bounce {
+  0% { transform: scale(0.6); }
+  50% { transform: scale(1.22); }
+  75% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+/* Spring Physics for buttons, tabs, triggers and inputs */
+.btn, .mode-tab, .path-chip, .btn-browse, .dpls-select-trigger, .icon-btn, .theme-toggle-btn {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.btn:hover, .mode-tab:hover, .path-chip:hover, .btn-browse:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.btn:active, .mode-tab:active, .path-chip:active, .btn-browse:active, .dpls-select-trigger:active, .icon-btn:active, .theme-toggle-btn:active {
+  transform: scale(0.92, 0.94) translateY(1px) !important;
+  transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--theme-accent);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+input[type="checkbox"]:active {
+  transform: scale(0.85);
+}
+input[type="checkbox"]:checked {
+  animation: jelly-bounce 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 * {
@@ -32,7 +89,7 @@
 }
 
 body {
-  background: radial-gradient(circle at 15% 15%, #131d2e 0%, #0d121c 65%, #080b12 100%);
+  background: radial-gradient(circle at 15% 15%, #0d121c 0%, #07090e 65%, #030407 100%);
   color: var(--text-main);
   width: 100vw;
   height: 100vh;
@@ -1041,15 +1098,15 @@ input[type="checkbox"]:active {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--theme-accent-gradient);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35), var(--glass-specular);
+  box-shadow: 0 4px 14px var(--theme-accent-glow), var(--glass-specular);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55), var(--glass-specular);
+  filter: brightness(1.15);
+  box-shadow: 0 6px 20px var(--theme-accent-glow), var(--glass-specular);
 }
 
 /* ========================================================
@@ -1131,10 +1188,10 @@ input[type="checkbox"]:active {
 
 .dpls-select-menu {
   position: fixed;
-  background: rgba(15, 23, 42, 0.96);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(14, 18, 26, 0.96);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(var(--theme-accent-rgb), 0.4);
   border-radius: 10px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
   padding: 6px;
@@ -1152,6 +1209,7 @@ input[type="checkbox"]:active {
   opacity: 1;
   pointer-events: auto;
   visibility: visible;
+  animation: jelly-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .dpls-select-menu::-webkit-scrollbar {
@@ -1206,4 +1264,86 @@ input[type="checkbox"]:active {
   opacity: 1;
   transform: scale(1);
 }
+
+/* ========================================================
+   Dialog Theme Switcher Popover
+   ======================================================== */
+.theme-picker-container {
+  position: relative;
+  display: inline-flex;
+}
+
+.theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-dot-preview {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--theme-accent);
+  box-shadow: 0 0 8px var(--theme-accent-glow);
+  display: block;
+}
+
+.theme-menu-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 140px;
+  background: rgba(14, 18, 26, 0.96);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(var(--theme-accent-rgb), 0.3);
+  padding: 8px;
+  z-index: 1000000;
+  display: none;
+  transform-origin: top right;
+  animation: jelly-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-menu-popover.is-open {
+  display: block;
+}
+
+.theme-swatches-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.theme-swatch-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.theme-swatch-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.12);
+}
+.theme-swatch-btn:active {
+  transform: scale(0.9);
+}
+
+.swatch-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: block;
+}
+
 

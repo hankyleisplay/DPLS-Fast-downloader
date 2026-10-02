@@ -110,6 +110,77 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {}
   }
 
+  // ========================================================
+  // Dynamic Accent Theme Engine (Apple Fluid / Material Design)
+  // ========================================================
+  function hexToRgb(hex) {
+    hex = hex.replace('#', '').trim();
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+    const num = parseInt(hex, 16);
+    if (isNaN(num)) return '14, 165, 233';
+    return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+  }
+
+  function applyTheme(hexColor, name = '') {
+    if (!hexColor) return;
+    const rgb = hexToRgb(hexColor);
+    const root = document.documentElement;
+    root.style.setProperty('--theme-accent', hexColor);
+    root.style.setProperty('--theme-accent-rgb', rgb);
+    root.style.setProperty('--theme-accent-glow', `rgba(${rgb}, 0.4)`);
+    root.style.setProperty('--theme-accent-gradient', `linear-gradient(135deg, rgba(${rgb}, 0.95) 0%, rgba(${rgb}, 0.7) 100%)`);
+
+    document.querySelectorAll('.theme-dot-preview').forEach(dot => {
+      dot.style.background = hexColor;
+    });
+
+    try {
+      chrome.storage.local.set({ dpls_theme_accent: hexColor, dpls_theme_name: name });
+    } catch (e) {}
+  }
+
+  const themeConfig = await chrome.storage.local.get(['dpls_theme_accent', 'dpls_theme_name']);
+  if (themeConfig.dpls_theme_accent) {
+    applyTheme(themeConfig.dpls_theme_accent, themeConfig.dpls_theme_name);
+  }
+
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'local' && changes.dpls_theme_accent) {
+        applyTheme(changes.dpls_theme_accent.newValue);
+      }
+    });
+  }
+
+  // Hook Theme Popovers in dialog
+  document.querySelectorAll('.btn-theme-toggle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const popover = btn.parentElement.querySelector('.theme-menu-popover');
+      if (popover) {
+        const isOpen = popover.classList.contains('is-open');
+        document.querySelectorAll('.theme-menu-popover').forEach(p => p.classList.remove('is-open'));
+        if (!isOpen) popover.classList.add('is-open');
+      }
+    });
+  });
+
+  document.querySelectorAll('.theme-swatch-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const color = btn.dataset.color;
+      const title = btn.getAttribute('title') || '';
+      applyTheme(color, title);
+      document.querySelectorAll('.theme-menu-popover').forEach(p => p.classList.remove('is-open'));
+    });
+  });
+
+  window.addEventListener('click', () => {
+    document.querySelectorAll('.theme-menu-popover').forEach(p => p.classList.remove('is-open'));
+  });
+
   // Language switcher setup
   const langConfig = await chrome.storage.local.get(['dpls_language']);
   let activeLang = langConfig.dpls_language || detectInitialLanguage();

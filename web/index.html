@@ -6,23 +6,88 @@
   <title>DPLS-Fast | 極速多線程下載加速器</title>
   <style>
     :root {
-      --bg-primary: #0d1117;
-      --bg-secondary: #161b22;
-      --bg-tertiary: #21262d;
-      --border-color: #30363d;
-      --accent: #2ea043;
-      --accent-glow: rgba(46, 160, 67, 0.4);
-      --speed-color: #58a6ff;
-      --speed-glow: rgba(88, 166, 255, 0.3);
-      --text-main: #f0f6fc;
-      --text-sub: #8b949e;
-      --card-bg: #161b22;
-      --danger: #f85149;
-      --warning: #d29922;
-      --seg-active: #3fb950;
-      --seg-pending: #21262d;
-      --seg-border: #30363d;
-      --radius: 10px;
+      /* Obsidian & Crystal White Base (黑白極簡晶石底座) */
+      --bg-primary: #07090e;
+      --bg-secondary: rgba(14, 18, 26, 0.85);
+      --bg-tertiary: rgba(255, 255, 255, 0.05);
+      --border-color: rgba(255, 255, 255, 0.12);
+      --border-focus: rgba(255, 255, 255, 0.28);
+      --glass-surface: rgba(18, 22, 32, 0.65);
+      --glass-blur: blur(28px) saturate(190%);
+      --glass-specular: inset 0 1px 1px rgba(255, 255, 255, 0.25);
+      --card-bg: rgba(16, 20, 29, 0.75);
+      --text-main: #ffffff;
+      --text-sub: #94a3b8;
+      --text-muted: #64748b;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+
+      /* Material Design Dynamic Theme Accent (可由使用者自訂) */
+      --theme-accent: #0ea5e9;
+      --theme-accent-rgb: 14, 165, 233;
+      --theme-accent-glow: rgba(var(--theme-accent-rgb), 0.4);
+      --theme-accent-gradient: linear-gradient(135deg, rgba(var(--theme-accent-rgb), 0.95) 0%, rgba(var(--theme-accent-rgb), 0.7) 100%);
+      --theme-accent-text: #ffffff;
+
+      --speed-color: var(--theme-accent);
+      --speed-glow: var(--theme-accent-glow);
+      --accent: var(--theme-accent);
+      --accent-glow: var(--theme-accent-glow);
+      --danger: #f43f5e;
+      --warning: #f59e0b;
+      --seg-active: var(--theme-accent);
+      --seg-pending: rgba(255, 255, 255, 0.05);
+      --seg-border: rgba(255, 255, 255, 0.1);
+    }
+
+    /* ========================================================
+       Apple Jelly / Spring Physics Animation (果凍彈力動效)
+       ======================================================== */
+    @keyframes jelly-squish {
+      0% { transform: scale(1, 1); }
+      35% { transform: scale(0.92, 0.95); }
+      60% { transform: scale(1.05, 1.02); }
+      80% { transform: scale(0.98, 0.99); }
+      100% { transform: scale(1, 1); }
+    }
+
+    @keyframes jelly-pop {
+      0% {
+        opacity: 0;
+        transform: scale(0.86, 0.82) translateY(-10px);
+      }
+      50% {
+        transform: scale(1.04, 1.03) translateY(3px);
+      }
+      75% {
+        transform: scale(0.98, 0.99) translateY(-1px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1, 1) translateY(0);
+      }
+    }
+
+    @keyframes jelly-bounce {
+      0% { transform: scale(0.6); }
+      50% { transform: scale(1.22); }
+      75% { transform: scale(0.92); }
+      100% { transform: scale(1); }
+    }
+
+    /* Spring Physics for all interactive buttons and triggers */
+    .btn-primary, .btn-secondary, .queue-setting-pill, .dpls-select-trigger, .theme-swatch-btn, .custom-checkbox-container {
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .btn-primary:hover, .btn-secondary:hover {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .btn-primary:active, .btn-secondary:active, .dpls-select-trigger:active, .btn-clear-mini:active, .custom-checkbox-container:active {
+      transform: scale(0.92, 0.94) translateY(1px) !important;
+      transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     * {
@@ -60,7 +125,7 @@
 
     .brand-logo {
       font-size: 1.8rem;
-      background: linear-gradient(135deg, #58a6ff, #2ea043);
+      background: linear-gradient(135deg, var(--theme-accent), #ffffff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       font-weight: 800;
@@ -68,9 +133,9 @@
     }
 
     .brand-badge {
-      background: rgba(88, 166, 255, 0.15);
-      color: #58a6ff;
-      border: 1px solid rgba(88, 166, 255, 0.3);
+      background: rgba(var(--theme-accent-rgb), 0.15);
+      color: var(--theme-accent);
+      border: 1px solid rgba(var(--theme-accent-rgb), 0.35);
       padding: 3px 8px;
       border-radius: 6px;
       font-size: 0.75rem;
@@ -122,22 +187,28 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #238636, #2ea043);
-      color: #fff;
-      box-shadow: 0 2px 8px var(--accent-glow);
+      background: var(--theme-accent-gradient);
+      color: var(--theme-accent-text);
+      box-shadow: 0 4px 14px var(--theme-accent-glow), var(--glass-specular);
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
     .btn-primary:hover {
-      background: linear-gradient(135deg, #2ea043, #3fb950);
-      transform: translateY(-1px);
+      filter: brightness(1.1);
+      box-shadow: 0 6px 20px var(--theme-accent-glow), var(--glass-specular);
     }
 
     .btn-secondary {
-      background-color: var(--bg-tertiary);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: var(--text-main);
       border: 1px solid var(--border-color);
+      box-shadow: var(--glass-specular);
     }
     .btn-secondary:hover {
-      background-color: #30363d;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
     }
 
     .btn-danger {
@@ -211,8 +282,8 @@
     }
 
     .task-card:hover {
-      border-color: #58a6ff;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border-color: var(--theme-accent);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 16px rgba(var(--theme-accent-rgb), 0.15);
     }
 
     .task-top {
@@ -323,9 +394,10 @@
 
     .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, #58a6ff, #2ea043);
+      background: var(--theme-accent-gradient);
+      box-shadow: 0 0 10px var(--theme-accent-glow);
       width: 0%;
-      transition: width 0.3s ease;
+      transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     /* IDM Segment Visualizer */
@@ -444,7 +516,8 @@
       font-size: 0.95rem;
     }
     .form-control:focus {
-      border-color: #58a6ff;
+      border-color: var(--theme-accent);
+      box-shadow: 0 0 0 3px var(--theme-accent-glow);
       outline: none;
     }
 
@@ -483,7 +556,7 @@
     .queue-setting-pill select {
       background: transparent;
       border: none;
-      color: #58a6ff;
+      color: var(--theme-accent);
       font-weight: 700;
       outline: none;
       cursor: pointer;
@@ -505,11 +578,15 @@
       border-radius: 6px;
       font-size: 0.88rem;
       cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .batch-tab:active {
+      transform: scale(0.94);
     }
     .batch-tab.active {
-      background: rgba(88, 166, 255, 0.15);
-      border-color: rgba(88, 166, 255, 0.4);
-      color: #58a6ff;
+      background: rgba(var(--theme-accent-rgb), 0.15);
+      border-color: rgba(var(--theme-accent-rgb), 0.4);
+      color: var(--theme-accent);
     }
     .batch-preview-box {
       background: #0d1117;
@@ -580,7 +657,7 @@
     .toast-title {
       font-size: 0.88rem;
       font-weight: 700;
-      color: #58a6ff;
+      color: var(--theme-accent);
       margin-bottom: 2px;
     }
     .toast-url {
@@ -649,14 +726,14 @@
 
     .dpls-select-trigger:focus,
     .dpls-select-trigger.is-open {
-      border-color: #58a6ff !important;
-      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.25) !important;
+      border-color: var(--theme-accent) !important;
+      box-shadow: 0 0 0 3px rgba(var(--theme-accent-rgb), 0.25) !important;
     }
 
     .dpls-select-wrapper.inline-select .dpls-select-trigger {
       background: transparent !important;
       border: 1px solid transparent !important;
-      color: #58a6ff !important;
+      color: var(--theme-accent) !important;
       padding: 2px 6px !important;
       font-weight: 700 !important;
       border-radius: 4px !important;
@@ -665,8 +742,8 @@
     }
     .dpls-select-wrapper.inline-select .dpls-select-trigger:hover,
     .dpls-select-wrapper.inline-select .dpls-select-trigger.is-open {
-      background: rgba(88, 166, 255, 0.12) !important;
-      border-color: rgba(88, 166, 255, 0.3) !important;
+      background: rgba(var(--theme-accent-rgb), 0.12) !important;
+      border-color: rgba(var(--theme-accent-rgb), 0.3) !important;
     }
 
     .dpls-select-val {
@@ -681,13 +758,13 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      color: #8b949e;
+      color: var(--text-sub);
       transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
       flex-shrink: 0;
     }
     .dpls-select-trigger:hover .dpls-select-arrow,
     .dpls-select-trigger.is-open .dpls-select-arrow {
-      color: #58a6ff;
+      color: var(--theme-accent);
     }
     .dpls-select-trigger.is-open .dpls-select-arrow {
       transform: rotate(180deg);
@@ -695,12 +772,12 @@
 
     .dpls-select-menu {
       position: fixed;
-      background: rgba(15, 23, 42, 0.96);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(88, 166, 255, 0.4);
-      border-radius: 10px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      background: rgba(14, 18, 26, 0.95);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(var(--theme-accent-rgb), 0.35);
+      border-radius: 12px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1);
       padding: 6px;
       z-index: 999999;
       max-height: 250px;
@@ -710,12 +787,14 @@
       visibility: hidden;
       transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
       box-sizing: border-box;
+      transform-origin: top left;
     }
 
     .dpls-select-menu.is-open {
       opacity: 1;
       pointer-events: auto;
       visibility: visible;
+      animation: jelly-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
     .dpls-select-menu::-webkit-scrollbar {
@@ -729,7 +808,7 @@
       border-radius: 6px;
     }
     .dpls-select-menu::-webkit-scrollbar-thumb:hover {
-      background: rgba(88, 166, 255, 0.5);
+      background: var(--theme-accent);
     }
 
     .dpls-select-option {
@@ -742,7 +821,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      transition: all 0.15s ease;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
       margin-bottom: 2px;
       user-select: none;
     }
@@ -750,18 +829,18 @@
       margin-bottom: 0;
     }
     .dpls-select-option:hover {
-      background: rgba(88, 166, 255, 0.18);
-      color: #58a6ff;
-      transform: translateX(3px);
+      background: rgba(var(--theme-accent-rgb), 0.18);
+      color: var(--theme-accent);
+      transform: translateX(4px);
     }
     .dpls-select-option.is-selected {
-      background: rgba(88, 166, 255, 0.24);
-      color: #58a6ff;
+      background: rgba(var(--theme-accent-rgb), 0.25);
+      color: var(--theme-accent);
       font-weight: 600;
     }
     .dpls-select-check {
       font-size: 0.9rem;
-      color: #58a6ff;
+      color: var(--theme-accent);
       opacity: 0;
       transform: scale(0.6);
       transition: all 0.15s ease;
@@ -801,22 +880,23 @@
     }
 
     input[type="checkbox"]:hover {
-      border-color: #58a6ff;
+      border-color: var(--theme-accent);
       background: rgba(22, 27, 34, 0.85);
-      box-shadow: 0 0 10px rgba(88, 166, 255, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 10px var(--theme-accent-glow), inset 0 1px 2px rgba(0, 0, 0, 0.3);
       transform: scale(1.05);
     }
 
     input[type="checkbox"]:focus-visible {
-      border-color: #58a6ff;
-      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+      border-color: var(--theme-accent);
+      box-shadow: 0 0 0 3px rgba(var(--theme-accent-rgb), 0.3);
     }
 
     input[type="checkbox"]:checked {
-      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      background: var(--theme-accent-gradient);
       border-color: rgba(255, 255, 255, 0.4);
-      box-shadow: 0 0 12px rgba(14, 165, 233, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 12px var(--theme-accent-glow), inset 0 1px 1px rgba(255, 255, 255, 0.5);
       transform: scale(1);
+      animation: jelly-bounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     input[type="checkbox"]::after {
@@ -824,7 +904,7 @@
       position: absolute;
       width: 5px;
       height: 9px;
-      border: solid #ffffff;
+      border: solid var(--theme-accent-text);
       border-width: 0 2px 2px 0;
       transform: rotate(45deg) scale(0);
       margin-bottom: 2px;
@@ -847,16 +927,160 @@
       user-select: none;
       padding: 6px 12px;
       border-radius: 8px;
-      background: rgba(88, 166, 255, 0.05);
-      border: 1px solid rgba(88, 166, 255, 0.18);
-      transition: all 0.2s ease;
+      background: rgba(var(--theme-accent-rgb), 0.06);
+      border: 1px solid rgba(var(--theme-accent-rgb), 0.2);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
       font-size: 0.88rem;
-      color: #58a6ff;
+      color: var(--theme-accent);
       font-weight: 600;
     }
     .custom-checkbox-container:hover {
-      background: rgba(88, 166, 255, 0.12);
-      border-color: rgba(88, 166, 255, 0.38);
+      background: rgba(var(--theme-accent-rgb), 0.14);
+      border-color: rgba(var(--theme-accent-rgb), 0.4);
+      transform: scale(1.02);
+    }
+
+    /* ========================================================
+       Material Design Dynamic Theme Switcher (主題色彩調色盤)
+       ======================================================== */
+    .theme-picker-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .theme-dot-preview {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--theme-accent);
+      box-shadow: 0 0 10px var(--theme-accent-glow);
+      display: inline-block;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    #btnThemeToggle:hover .theme-dot-preview {
+      transform: scale(1.25);
+    }
+
+    .theme-menu-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 280px;
+      background: rgba(14, 18, 26, 0.94);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(var(--theme-accent-rgb), 0.25);
+      padding: 14px;
+      z-index: 10001;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      transform-origin: top right;
+      animation: jelly-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .theme-menu-popover.is-open {
+      display: flex;
+    }
+
+    .theme-menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+    }
+
+    .theme-menu-header span:first-child {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .theme-swatches-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .theme-swatch-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .theme-swatch-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: scale(1.05);
+    }
+
+    .theme-swatch-btn:active {
+      transform: scale(0.92);
+    }
+
+    .theme-swatch-btn.is-active {
+      border-color: var(--theme-accent);
+      background: rgba(var(--theme-accent-rgb), 0.15);
+      box-shadow: 0 0 12px var(--theme-accent-glow);
+    }
+
+    .swatch-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+      display: block;
+      transition: transform 0.2s ease;
+    }
+
+    .theme-swatch-btn:hover .swatch-circle {
+      transform: scale(1.1);
+    }
+
+    .swatch-name {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .theme-custom-picker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .theme-custom-picker-row input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      background: none;
+      padding: 0;
+    }
+    .theme-custom-picker-row input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    .theme-custom-picker-row input[type="color"]::-webkit-color-swatch {
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     }
   </style>
 </head>
@@ -880,6 +1104,50 @@
     </div>
 
     <div class="header-actions">
+      <!-- Theme Switcher Popover Button -->
+      <div class="theme-picker-container" id="themePickerContainer">
+        <button class="btn-secondary" id="btnThemeToggle" onclick="toggleThemeMenu(event)" title="切換動態主題色彩">
+          <span class="theme-dot-preview" id="themeCurrentDot"></span>
+          <span>主題</span>
+        </button>
+        <div class="theme-menu-popover" id="themeMenuPopover">
+          <div class="theme-menu-header">
+            <span>🎨 個性化外觀主題</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Liquid Glass</span>
+          </div>
+          <div class="theme-swatches-grid">
+            <button class="theme-swatch-btn" onclick="setAppTheme('#0ea5e9', 'Cyber Cyan')" title="Cyber Cyan">
+              <span class="swatch-circle" style="background: #0ea5e9;"></span>
+              <span class="swatch-name">Cyber Cyan</span>
+            </button>
+            <button class="theme-swatch-btn" onclick="setAppTheme('#8b5cf6', 'Electric Violet')" title="Electric Violet">
+              <span class="swatch-circle" style="background: #8b5cf6;"></span>
+              <span class="swatch-name">Violet</span>
+            </button>
+            <button class="theme-swatch-btn" onclick="setAppTheme('#10b981', 'Emerald Jade')" title="Emerald Jade">
+              <span class="swatch-circle" style="background: #10b981;"></span>
+              <span class="swatch-name">Emerald</span>
+            </button>
+            <button class="theme-swatch-btn" onclick="setAppTheme('#f59e0b', 'Sunset Amber')" title="Sunset Amber">
+              <span class="swatch-circle" style="background: #f59e0b;"></span>
+              <span class="swatch-name">Sunset</span>
+            </button>
+            <button class="theme-swatch-btn" onclick="setAppTheme('#f43f5e', 'Rose Crimson')" title="Rose Crimson">
+              <span class="swatch-circle" style="background: #f43f5e;"></span>
+              <span class="swatch-name">Rose</span>
+            </button>
+            <button class="theme-swatch-btn" onclick="setAppTheme('#e2e8f0', 'Obsidian White')" title="Obsidian White">
+              <span class="swatch-circle" style="background: #e2e8f0;"></span>
+              <span class="swatch-name">White</span>
+            </button>
+          </div>
+          <div class="theme-custom-picker-row">
+            <span style="font-size: 0.8rem; color: var(--text-sub);">自訂色相</span>
+            <input type="color" id="themeCustomColorPicker" value="#0ea5e9" oninput="setAppTheme(this.value, 'Custom')">
+          </div>
+        </div>
+      </div>
+
       <!-- Clipboard Monitor Toggle -->
       <button class="btn-secondary" id="btnClipboardMonitor" onclick="toggleClipboardMonitor()" title="自動監聽系統剪貼簿下載連結">
         <span id="clipboardIcon">📋</span> <span>監聽剪貼簿: <b id="clipboardStatusText" style="color: #34d399;">開啟</b></span>
@@ -985,7 +1253,7 @@
       <div id="modalProbeInfo" style="display: none; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px 14px; margin-top: 1rem; font-size: 0.82rem; justify-content: space-between; align-items: center;">
         <div>
           <span style="color: #8b949e;">資源大小: </span>
-          <strong id="modalFileSize" style="color: #58a6ff;">--</strong>
+          <strong id="modalFileSize" style="color: var(--theme-accent);">--</strong>
         </div>
         <div>
           <span style="color: #8b949e;">HTTP Range 支援: </span>
@@ -1126,6 +1394,82 @@
     const speedHistory = new Array(60).fill(0);
     let peakSpeed = 0;
 
+    // ========================================================
+    // Dynamic Accent Theme Engine (Apple Fluid / Material Design)
+    // ========================================================
+    let currentThemeHex = '#0ea5e9';
+    let currentThemeRgb = '14, 165, 233';
+
+    function hexToRgb(hex) {
+      hex = hex.replace('#', '').trim();
+      if (hex.length === 3) {
+        hex = hex.split('').map(c => c + c).join('');
+      }
+      const num = parseInt(hex, 16);
+      if (isNaN(num)) return '14, 165, 233';
+      return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+    }
+
+    function setAppTheme(hexColor, name = '') {
+      if (!hexColor) return;
+      currentThemeHex = hexColor;
+      currentThemeRgb = hexToRgb(hexColor);
+
+      const root = document.documentElement;
+      root.style.setProperty('--theme-accent', currentThemeHex);
+      root.style.setProperty('--theme-accent-rgb', currentThemeRgb);
+      root.style.setProperty('--theme-accent-glow', `rgba(${currentThemeRgb}, 0.4)`);
+      root.style.setProperty('--theme-accent-gradient', `linear-gradient(135deg, rgba(${currentThemeRgb}, 0.95) 0%, rgba(${currentThemeRgb}, 0.7) 100%)`);
+
+      const dot = document.getElementById('themeCurrentDot');
+      if (dot) dot.style.background = currentThemeHex;
+
+      const picker = document.getElementById('themeCustomColorPicker');
+      if (picker && picker.value.toLowerCase() !== hexColor.toLowerCase()) {
+        picker.value = hexColor;
+      }
+
+      document.querySelectorAll('.theme-swatch-btn').forEach(btn => {
+        const title = (btn.getAttribute('title') || '').toLowerCase();
+        if (name && (title.includes(name.toLowerCase()) || name.toLowerCase().includes(title))) {
+          btn.classList.add('is-active');
+        } else {
+          btn.classList.remove('is-active');
+        }
+      });
+
+      try {
+        localStorage.setItem('dpls_theme_accent', currentThemeHex);
+        if (name) localStorage.setItem('dpls_theme_name', name);
+      } catch (e) {
+        console.warn('Cannot persist theme to localStorage', e);
+      }
+
+      drawChart();
+    }
+
+    function toggleThemeMenu(event) {
+      if (event) event.stopPropagation();
+      const popover = document.getElementById('themeMenuPopover');
+      if (!popover) return;
+      popover.classList.toggle('is-open');
+    }
+
+    function closeThemeMenu() {
+      const popover = document.getElementById('themeMenuPopover');
+      if (popover) popover.classList.remove('is-open');
+    }
+
+    function loadSavedTheme() {
+      try {
+        const savedHex = localStorage.getItem('dpls_theme_accent') || '#0ea5e9';
+        const savedName = localStorage.getItem('dpls_theme_name') || 'Cyber Cyan';
+        setAppTheme(savedHex, savedName);
+      } catch (e) {
+        setAppTheme('#0ea5e9', 'Cyber Cyan');
+      }
+    }
+
     // Speed Chart Drawing
     const canvas = document.getElementById('speedChart');
     const ctx = canvas.getContext('2d');
@@ -1142,10 +1486,10 @@
       const maxVal = Math.max(1, ...speedHistory) * 1.15;
       const step = canvas.width / (speedHistory.length - 1);
 
-      // Gradient fill
+      // Dynamic Theme Gradient fill
       const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      grad.addColorStop(0, 'rgba(88, 166, 255, 0.4)');
-      grad.addColorStop(1, 'rgba(88, 166, 255, 0.0)');
+      grad.addColorStop(0, `rgba(${currentThemeRgb}, 0.38)`);
+      grad.addColorStop(1, `rgba(${currentThemeRgb}, 0.0)`);
 
       ctx.beginPath();
       ctx.moveTo(0, canvas.height);
@@ -1159,7 +1503,7 @@
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Line
+      // Dynamic Theme Line
       ctx.beginPath();
       for (let i = 0; i < speedHistory.length; i++) {
         const x = i * step;
@@ -1167,8 +1511,8 @@
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
-      ctx.strokeStyle = '#58a6ff';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = currentThemeHex;
+      ctx.lineWidth = 2.5;
       ctx.stroke();
     }
 
@@ -1334,7 +1678,7 @@
 
           <div class="task-meta">
             <span>進度: <strong>${pct}%</strong> (${formatBytes(task.downloaded_bytes)} / ${formatBytes(task.total_size)})</span>
-            <span>速度: <strong style="color: #58a6ff;">${speedMB} MB/s</strong></span>
+            <span>速度: <strong style="color: var(--theme-accent);">${speedMB} MB/s</strong></span>
             <span>剩餘時間: <strong>${formatEta(task.eta_seconds)}</strong></span>
             <span>併發線程: <strong>${task.connections}</strong> (動態分段: ${task.segments ? task.segments.length : 0})</span>
           </div>
@@ -1957,17 +2301,27 @@
       if (!e.target.closest('.dpls-select-trigger') && !e.target.closest('.dpls-select-menu')) {
         closeAllCustomSelects();
       }
+      if (!e.target.closest('#themePickerContainer')) {
+        closeThemeMenu();
+      }
     });
     window.addEventListener('scroll', () => {
       closeAllCustomSelects();
     }, true);
-    window.addEventListener('resize', closeAllCustomSelects);
+    window.addEventListener('resize', () => {
+      closeAllCustomSelects();
+      closeThemeMenu();
+    });
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeAllCustomSelects();
+      if (e.key === 'Escape') {
+        closeAllCustomSelects();
+        closeThemeMenu();
+      }
     });
 
     // Init
     window.addEventListener('load', () => {
+      loadSavedTheme();
       initCustomSelects();
       resizeCanvas();
       loadTasks();

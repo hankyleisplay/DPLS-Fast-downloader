@@ -32,6 +32,62 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.initCustomSelects();
   }
 
+  // ========================================================
+  // Dynamic Accent Theme Engine (Apple Fluid / Material Design)
+  // ========================================================
+  function hexToRgb(hex) {
+    hex = hex.replace('#', '').trim();
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+    const num = parseInt(hex, 16);
+    if (isNaN(num)) return '14, 165, 233';
+    return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+  }
+
+  function applyTheme(hexColor, name = '') {
+    if (!hexColor) return;
+    const rgb = hexToRgb(hexColor);
+    const root = document.documentElement;
+    root.style.setProperty('--theme-accent', hexColor);
+    root.style.setProperty('--theme-accent-rgb', rgb);
+    root.style.setProperty('--theme-accent-glow', `rgba(${rgb}, 0.4)`);
+    root.style.setProperty('--theme-accent-gradient', `linear-gradient(135deg, rgba(${rgb}, 0.95) 0%, rgba(${rgb}, 0.7) 100%)`);
+
+    document.querySelectorAll('.theme-swatch-mini').forEach(el => {
+      if (el.dataset.color.toLowerCase() === hexColor.toLowerCase()) {
+        el.classList.add('is-active');
+      } else {
+        el.classList.remove('is-active');
+      }
+    });
+
+    try {
+      chrome.storage.local.set({ dpls_theme_accent: hexColor, dpls_theme_name: name });
+    } catch (e) {}
+  }
+
+  const themeConfig = await chrome.storage.local.get(['dpls_theme_accent', 'dpls_theme_name']);
+  if (themeConfig.dpls_theme_accent) {
+    applyTheme(themeConfig.dpls_theme_accent, themeConfig.dpls_theme_name);
+  }
+
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'local' && changes.dpls_theme_accent) {
+        applyTheme(changes.dpls_theme_accent.newValue);
+      }
+    });
+  }
+
+  document.querySelectorAll('.theme-swatch-mini').forEach(el => {
+    el.addEventListener('click', () => {
+      const color = el.dataset.color;
+      const title = el.getAttribute('title') || '';
+      applyTheme(color, title);
+    });
+  });
+
   // Save changes
   toggleAuto.addEventListener('change', () => {
     chrome.storage.local.set({ autoIntercept: toggleAuto.checked });
