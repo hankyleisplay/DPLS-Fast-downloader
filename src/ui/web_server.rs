@@ -25,6 +25,7 @@ pub async fn start_web_server(
     port: u16,
     auto_open: bool,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    manager.load_tasks_from_disk().await;
     manager.ensure_queue_worker_started();
     let state = Arc::new(AppState { manager });
 
@@ -40,6 +41,9 @@ pub async fn start_web_server(
         .route("/api/batch_add", post(batch_add_handler))
         .route("/api/pause/:id", post(pause_task_handler))
         .route("/api/resume/:id", post(resume_task_handler))
+        .route("/api/pause_all", post(pause_all_handler))
+        .route("/api/resume_all", post(resume_all_handler))
+        .route("/api/clear_completed", post(clear_completed_handler))
         .route("/api/open/:id", post(open_file_handler))
         .route("/api/open-dir/:id", post(open_dir_handler))
         .route("/api/settings/autostart", get(get_autostart_handler).post(set_autostart_handler))
@@ -227,6 +231,27 @@ async fn resume_task_handler(
     } else {
         StatusCode::NOT_FOUND
     }
+}
+
+async fn pause_all_handler(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    state.manager.pause_all().await;
+    Json(serde_json::json!({ "status": "ok" }))
+}
+
+async fn resume_all_handler(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    state.manager.resume_all().await;
+    Json(serde_json::json!({ "status": "ok" }))
+}
+
+async fn clear_completed_handler(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let cleared = state.manager.clear_completed().await;
+    Json(serde_json::json!({ "status": "ok", "cleared_count": cleared }))
 }
 
 async fn get_single_task_handler(

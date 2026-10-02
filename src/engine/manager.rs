@@ -23,6 +23,18 @@ pub struct AddTaskRequest {
     pub scheduled_start_time: Option<u64>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersistedTaskRecord {
+    pub id: String,
+    pub url: String,
+    pub filename: String,
+    pub output_path: String,
+    pub total_size: Option<u64>,
+    pub downloaded_bytes: u64,
+    pub state: TaskState,
+    pub connections: usize,
+}
+
 fn resolve_collision(dir: &std::path::Path, filename: &str, policy: Option<&str>) -> String {
     let policy = policy.unwrap_or("auto_rename");
     if policy == "overwrite" {
@@ -192,9 +204,30 @@ impl TaskManager {
 
             let t = task.clone();
             let trig = trigger_tx.clone();
+            let tasks_for_save = tasks.clone();
             tokio::spawn(async move {
                 if let Err(e) = t.start().await {
                     eprintln!("Task error: {}", e);
+                }
+                let path = TaskManager::persistence_file_path();
+                let tasks_guard = tasks_for_save.read().await;
+                let mut records = Vec::new();
+                for task in tasks_guard.values() {
+                    let snap = task.snapshot().await;
+                    records.push(PersistedTaskRecord {
+                        id: snap.id,
+                        url: snap.url,
+                        filename: snap.filename,
+                        output_path: snap.output_path,
+                        total_size: snap.total_size,
+                        downloaded_bytes: snap.downloaded_bytes,
+                        state: snap.state,
+                        connections: snap.connections,
+                    });
+                }
+                drop(tasks_guard);
+                if let Ok(json_str) = serde_json::to_string_pretty(&records) {
+                    let _ = tokio::fs::write(&path, json_str).await;
                 }
                 let _ = trig.send(()).await;
             });
@@ -266,6 +299,7 @@ impl TaskManager {
             let _ = self.queue_trigger_tx.send(()).await;
         }
 
+        self.save_tasks_to_disk().await;
         Ok(id)
     }
 
@@ -321,6 +355,7 @@ impl TaskManager {
         if let Some(task) = task {
             task.pause().await;
             let _ = self.queue_trigger_tx.send(()).await;
+            self.save_tasks_to_disk().await;
             true
         } else {
             false
@@ -339,6 +374,7 @@ impl TaskManager {
             let snap = task.snapshot().await;
             let _ = self.global_events_tx.send(snap);
             let _ = self.queue_trigger_tx.send(()).await;
+            self.save_tasks_to_disk().await;
             true
         } else {
             false
@@ -360,9 +396,130 @@ impl TaskManager {
                 let _ = tokio::fs::remove_file(&meta_file).await;
             }
             let _ = self.queue_trigger_tx.send(()).await;
+            self.save_tasks_to_disk().await;
             true
         } else {
             false
         }
+    }
+
+    pub fn persistence_file_path() -> PathBuf {
+        let base_dir = dirs::config_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("dpls-fast");
+        let _ = std::fs::create_dir_all(&base_dir);
+        base_dir.join("tasks_history.json")
+    }
+
+    pub async fn save_tasks_to_disk(&self) {
+        let path = Self::persistence_file_path();
+        let tasks_guard = self.tasks.read().await;
+        let mut records = Vec::new();
+        for task in tasks_guard.values() {
+            let snap = task.snapshot().await;
+            records.push(PersistedTaskRecord {
+                id: snap.id,
+                url: snap.url,
+                filename: snap.filename,
+                output_path: snap.output_path,
+                total_size: snap.total_size,
+                downloaded_bytes: snap.downloaded_bytes,
+                state: snap.state,
+                connections: snap.connections,
+            });
+        }
+        drop(tasks_guard);
+
+        if let Ok(json_str) = serde_json::to_string_pretty(&records) {
+            let _ = tokio::fs::write(&path, json_str).await;
+        }
+    }
+
+    pub async fn load_tasks_from_disk(&self) {
+        let path = Self::persistence_file_path();
+        if !path.exists() {
+            return;
+        }
+        if let Ok(content) = tokio::fs::read_to_string(&path).await {
+            if let Ok(records) = serde_json::from_str::<Vec<PersistedTaskRecord>>(&content) {
+                let mut tasks_guard = self.tasks.write().await;
+                for rec in records {
+                    if tasks_guard.contains_key(&rec.id) {
+                        continue;
+                    }
+                    let state = match rec.state {
+                        TaskState::Downloading | TaskState::Queued | TaskState::Probing => TaskState::Paused,
+                        other => other,
+                    };
+                    if let Ok(task) = DownloadTask::from_persisted(
+                        rec.id.clone(),
+                        rec.url,
+                        rec.filename,
+                        PathBuf::from(rec.output_path),
+                        rec.total_size,
+                        rec.downloaded_bytes,
+                        state,
+                        rec.connections,
+                    ) {
+                        tasks_guard.insert(rec.id, Arc::new(task));
+                    }
+                }
+            }
+        }
+    }
+
+    pub async fn pause_all(&self) {
+        let tasks = {
+            let guard = self.tasks.read().await;
+            guard.values().cloned().collect::<Vec<_>>()
+        };
+        for task in tasks {
+            task.pause().await;
+        }
+        let _ = self.queue_trigger_tx.send(()).await;
+        self.save_tasks_to_disk().await;
+    }
+
+    pub async fn resume_all(&self) {
+        let tasks = {
+            let guard = self.tasks.read().await;
+            guard.values().cloned().collect::<Vec<_>>()
+        };
+        for task in tasks {
+            let state = task.state.read().await.clone();
+            if matches!(state, TaskState::Paused | TaskState::Error(_)) {
+                task.is_paused.store(false, Ordering::SeqCst);
+                *task.state.write().await = TaskState::Queued;
+                self.scheduled_tasks.write().await.remove(&task.id);
+                let snap = task.snapshot().await;
+                let _ = self.global_events_tx.send(snap);
+            }
+        }
+        let _ = self.queue_trigger_tx.send(()).await;
+        self.save_tasks_to_disk().await;
+    }
+
+    pub async fn clear_completed(&self) -> usize {
+        let completed_ids = {
+            let guard = self.tasks.read().await;
+            let mut ids = Vec::new();
+            for (id, task) in guard.iter() {
+                if *task.state.read().await == TaskState::Completed {
+                    ids.push(id.clone());
+                }
+            }
+            ids
+        };
+
+        let count = completed_ids.len();
+        if count > 0 {
+            let mut guard = self.tasks.write().await;
+            for id in &completed_ids {
+                guard.remove(id);
+                self.scheduled_tasks.write().await.remove(id);
+            }
+        }
+        self.save_tasks_to_disk().await;
+        count
     }
 }

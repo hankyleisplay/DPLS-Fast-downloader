@@ -261,6 +261,215 @@
       display: block;
     }
 
+    /* ========================================================
+       Task Management Toolbar: Search, Filters & Bulk Actions
+       ======================================================== */
+    .task-toolbar {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .toolbar-search-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 240px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px 34px 8px 36px;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--theme-accent);
+      box-shadow: 0 0 0 3px var(--theme-accent-glow);
+      outline: none;
+    }
+
+    .search-box .search-icon {
+      position: absolute;
+      left: 10px;
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      pointer-events: none;
+    }
+
+    .search-box .search-clear-btn {
+      position: absolute;
+      right: 8px;
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 2px 6px;
+      border-radius: 50%;
+    }
+
+    .search-box .search-clear-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .toolbar-sort-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-select {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 7px 12px;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .toolbar-select:focus {
+      border-color: var(--theme-accent);
+    }
+
+    .automation-toggles {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-pill {
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    .toolbar-tabs-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 10px;
+    }
+
+    .status-tabs-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab-chip {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-sub);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .tab-chip:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .tab-chip.active {
+      background: rgba(var(--theme-accent-rgb), 0.15);
+      border-color: rgba(var(--theme-accent-rgb), 0.4);
+      color: var(--theme-accent);
+      box-shadow: 0 0 10px rgba(var(--theme-accent-rgb), 0.15);
+    }
+
+    .tab-chip .badge {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-sub);
+      font-size: 0.72rem;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .tab-chip.active .badge {
+      background: var(--theme-accent);
+      color: #fff;
+    }
+
+    .bulk-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .category-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-top: 8px;
+    }
+
+    .cat-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .cat-pill {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cat-pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .cat-pill.active {
+      background: rgba(var(--theme-accent-rgb), 0.2);
+      border-color: var(--theme-accent);
+      color: var(--theme-accent);
+    }
+
     /* Task List */
     .section-title {
       font-size: 1.1rem;
@@ -1195,12 +1404,123 @@
       <span>📥 下載任務列表</span>
     </div>
 
+    <!-- Task Management Toolbar: Search, Filters & Bulk Actions -->
+    <div class="task-toolbar">
+      <!-- Search & Filters Row -->
+      <div class="toolbar-search-row">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="taskSearchInput" placeholder="即時搜尋檔名或下載網址 (按 Esc 清除)..." oninput="onFilterChange()" onkeydown="if(event.key==='Escape'){this.value='';onFilterChange();}">
+          <button class="search-clear-btn" id="searchClearBtn" onclick="document.getElementById('taskSearchInput').value='';onFilterChange();" title="清除搜尋">✕</button>
+        </div>
+
+        <!-- Sort Select -->
+        <div class="toolbar-sort-box">
+          <span style="font-size: 0.82rem; color: var(--text-sub);">排序方式:</span>
+          <select id="taskSortSelect" class="toolbar-select" onchange="onFilterChange()">
+            <option value="time-desc">最新新增優先</option>
+            <option value="time-asc">最舊新增優先</option>
+            <option value="size-desc">檔案大小 (大至小)</option>
+            <option value="size-asc">檔案大小 (小至大)</option>
+            <option value="progress-desc">下載進度 (高至低)</option>
+            <option value="speed-desc">傳輸速度 (快至慢)</option>
+            <option value="name-asc">檔案名稱 (A - Z)</option>
+          </select>
+        </div>
+
+        <!-- Automation toggles -->
+        <div class="automation-toggles">
+          <button class="btn-secondary toggle-pill" id="toggleSoundChime" onclick="toggleSoundChime()" title="下載完成時播放提示音效">
+            <span id="soundChimeIcon">🔔</span> <span id="soundChimeText">完成提示音: 開</span>
+          </button>
+          <button class="btn-secondary toggle-pill" id="toggleAutoOpen" onclick="toggleAutoOpenFile()" title="下載完成時自動開啟檔案">
+            <span id="autoOpenIcon">📂</span> <span id="autoOpenText">自動開啟: 關</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Status and Bulk Actions Row -->
+      <div class="toolbar-tabs-row">
+        <div class="status-tabs-group" id="statusTabsGroup">
+          <button class="tab-chip active" data-status="all" onclick="selectStatusTab('all')">
+            <span>全部</span> <span class="badge" id="badgeAll">0</span>
+          </button>
+          <button class="tab-chip" data-status="downloading" onclick="selectStatusTab('downloading')">
+            <span>下載中</span> <span class="badge" id="badgeDownloading">0</span>
+          </button>
+          <button class="tab-chip" data-status="queued" onclick="selectStatusTab('queued')">
+            <span>佇列排隊</span> <span class="badge" id="badgeQueued">0</span>
+          </button>
+          <button class="tab-chip" data-status="paused" onclick="selectStatusTab('paused')">
+            <span>已暫停</span> <span class="badge" id="badgePaused">0</span>
+          </button>
+          <button class="tab-chip" data-status="completed" onclick="selectStatusTab('completed')">
+            <span>已完成</span> <span class="badge" id="badgeCompleted">0</span>
+          </button>
+          <button class="tab-chip" data-status="error" onclick="selectStatusTab('error')">
+            <span>失敗</span> <span class="badge" id="badgeError">0</span>
+          </button>
+        </div>
+
+        <!-- Bulk Action Buttons -->
+        <div class="bulk-actions-group">
+          <button class="btn-secondary btn-sm" onclick="pauseAllTasks()" title="暫停所有正在下載中的任務">
+            ⏸️ 全部暫停
+          </button>
+          <button class="btn-primary btn-sm" onclick="resumeAllTasks()" title="啟動/繼續所有排隊與暫停任務">
+            ▶️ 全部繼續
+          </button>
+          <button class="btn-secondary btn-sm" onclick="clearCompletedTasks()" title="清除所有已完成的任務紀錄">
+            🧹 清除已完成
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="category-pills-row" id="categoryPillsRow">
+        <span class="cat-label">類型篩選：</span>
+        <button class="cat-pill active" data-cat="all" onclick="selectCategoryPill('all')">🌐 全部</button>
+        <button class="cat-pill" data-cat="compressed" onclick="selectCategoryPill('compressed')">📦 壓縮封裝</button>
+        <button class="cat-pill" data-cat="video" onclick="selectCategoryPill('video')">🎬 視訊影音</button>
+        <button class="cat-pill" data-cat="audio" onclick="selectCategoryPill('audio')">🎵 音樂音訊</button>
+        <button class="cat-pill" data-cat="document" onclick="selectCategoryPill('document')">📄 辦公文件</button>
+        <button class="cat-pill" data-cat="program" onclick="selectCategoryPill('program')">💻 軟體程式</button>
+      </div>
+    </div>
+
     <div class="task-list" id="taskList">
       <!-- Dynamically filled -->
       <div class="empty-state" id="emptyState">
         <div class="empty-state-icon">🚀</div>
         <h3>目前尚無下載任務</h3>
         <p>點擊右上角「新增下載任務」體驗 IDM 級超速多線程下載</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hash Checksum Modal -->
+  <div class="modal-overlay" id="hashVerifierModal">
+    <div class="modal-card" style="max-width: 560px;">
+      <h2>🛡️ 檔案雜湊完整性檢驗</h2>
+      <div style="font-size: 0.88rem; color: var(--text-sub); margin-bottom: 12px; word-break: break-all;" id="hashModalFilename"></div>
+      
+      <div class="form-group">
+        <label>SHA-256 數位指紋 (由伺服器即時運算)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="hashSha256Result" class="form-control" readonly placeholder="計算中..." style="font-family: monospace; font-size: 0.82rem;">
+          <button type="button" class="btn-secondary" onclick="copyHashResult()" title="複製 SHA-256">📋 複製</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>官方/預期雜湊碼 (貼上後自動比對)</label>
+        <input type="text" id="hashExpectedInput" class="form-control" placeholder="在此貼上發行者提供的 SHA-256 雜湊碼進行自動比對..." oninput="verifyHashMatch()" style="font-family: monospace; font-size: 0.82rem;">
+      </div>
+
+      <div id="hashMatchResultBox" style="display: none; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; margin-bottom: 14px;"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-secondary" onclick="closeHashModal()">關閉</button>
       </div>
     </div>
   </div>
@@ -1548,6 +1868,14 @@
       ws.onmessage = (event) => {
         try {
           const snapshot = JSON.parse(event.data);
+          const prev = previousTaskStates[snapshot.id];
+          if (snapshot.state === 'Completed' && prev && prev !== 'Completed') {
+            playCompletionDing();
+            if (autoOpenEnabled) {
+              openFile(snapshot.id);
+            }
+          }
+          previousTaskStates[snapshot.id] = snapshot.state;
           tasks[snapshot.id] = snapshot;
           renderTasks();
           updateGlobalStats();
@@ -1565,7 +1893,10 @@
       try {
         const res = await fetch(`${API_BASE}/api/tasks`);
         const list = await res.json();
-        list.forEach(t => tasks[t.id] = t);
+        list.forEach(t => {
+          previousTaskStates[t.id] = t.state;
+          tasks[t.id] = t;
+        });
         renderTasks();
         updateGlobalStats();
       } catch (e) {
@@ -1597,19 +1928,137 @@
       drawChart();
     }
 
+    let currentStatusFilter = 'all';
+    let currentCategoryFilter = 'all';
+    let currentSearchKeyword = '';
+    let currentSortMode = 'time-desc';
+    let soundChimeEnabled = localStorage.getItem('dpls_sound_chime') !== 'false';
+    let autoOpenEnabled = localStorage.getItem('dpls_auto_open') === 'true';
+    let previousTaskStates = {};
+
+    function getTaskCategory(filename, url) {
+      const target = (filename || url || '').toLowerCase();
+      const ext = target.split('?')[0].split('#')[0].split('.').pop();
+      if (['zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'tbz2', 'xz', 'txz', 'iso', 'img', 'cab', 'arj', 'wim'].includes(ext)) {
+        return 'compressed';
+      }
+      if (['mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv', 'webm', 'm4v', '3gp', 'ts', 'm2ts'].includes(ext)) {
+        return 'video';
+      }
+      if (['mp3', 'flac', 'wav', 'aac', 'ogg', 'm4a', 'opus', 'ape', 'alac', 'mid'].includes(ext)) {
+        return 'audio';
+      }
+      if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'epub', 'html', 'htm', 'xhtml', 'mhtml'].includes(ext)) {
+        return 'document';
+      }
+      if (['exe', 'msi', 'deb', 'rpm', 'apk', 'pkg', 'appimage', 'flatpak', 'dmg', 'sh', 'bat', 'cmd', 'ps1'].includes(ext)) {
+        return 'program';
+      }
+      return 'other';
+    }
+
+    function getCategoryIcon(cat) {
+      switch (cat) {
+        case 'compressed': return '📦';
+        case 'video': return '🎬';
+        case 'audio': return '🎵';
+        case 'document': return '📄';
+        case 'program': return '💻';
+        default: return '📁';
+      }
+    }
+
     function renderTasks() {
       const container = document.getElementById('taskList');
       const emptyState = document.getElementById('emptyState');
-      const taskKeys = Object.keys(tasks);
+      const allTaskKeys = Object.keys(tasks);
 
-      if (taskKeys.length === 0) {
-        emptyState.style.display = 'block';
-        return;
+      // 1. Calculate status badges
+      let countAll = allTaskKeys.length;
+      let countDownloading = 0;
+      let countQueued = 0;
+      let countPaused = 0;
+      let countCompleted = 0;
+      let countError = 0;
+
+      allTaskKeys.forEach(id => {
+        const t = tasks[id];
+        if (t.state === 'Downloading') countDownloading++;
+        else if (t.state === 'Queued') countQueued++;
+        else if (t.state === 'Paused') countPaused++;
+        else if (t.state === 'Completed') countCompleted++;
+        else if (typeof t.state === 'object' && t.state.Error) countError++;
+      });
+
+      const bAll = document.getElementById('badgeAll'); if (bAll) bAll.textContent = countAll;
+      const bDl = document.getElementById('badgeDownloading'); if (bDl) bDl.textContent = countDownloading;
+      const bQ = document.getElementById('badgeQueued'); if (bQ) bQ.textContent = countQueued;
+      const bP = document.getElementById('badgePaused'); if (bP) bP.textContent = countPaused;
+      const bC = document.getElementById('badgeCompleted'); if (bC) bC.textContent = countCompleted;
+      const bE = document.getElementById('badgeError'); if (bE) bE.textContent = countError;
+
+      // 2. Filter tasks
+      let filtered = allTaskKeys.map(id => tasks[id]).filter(task => {
+        // Status filter
+        if (currentStatusFilter === 'downloading' && task.state !== 'Downloading') return false;
+        if (currentStatusFilter === 'queued' && task.state !== 'Queued') return false;
+        if (currentStatusFilter === 'paused' && task.state !== 'Paused') return false;
+        if (currentStatusFilter === 'completed' && task.state !== 'Completed') return false;
+        if (currentStatusFilter === 'error' && !(typeof task.state === 'object' && task.state.Error)) return false;
+
+        // Category filter
+        const cat = getTaskCategory(task.filename, task.url);
+        if (currentCategoryFilter !== 'all' && cat !== currentCategoryFilter) return false;
+
+        // Search keyword
+        if (currentSearchKeyword) {
+          const fn = (task.filename || '').toLowerCase();
+          const u = (task.url || '').toLowerCase();
+          if (!fn.includes(currentSearchKeyword) && !u.includes(currentSearchKeyword)) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      // 3. Sort tasks
+      filtered.sort((a, b) => {
+        if (currentSortMode === 'time-asc') return 0;
+        if (currentSortMode === 'size-desc') return (b.total_size || 0) - (a.total_size || 0);
+        if (currentSortMode === 'size-asc') return (a.total_size || 0) - (b.total_size || 0);
+        if (currentSortMode === 'progress-desc') return (b.progress_ratio || 0) - (a.progress_ratio || 0);
+        if (currentSortMode === 'speed-desc') return (b.speed_bps || 0) - (a.speed_bps || 0);
+        if (currentSortMode === 'name-asc') return (a.filename || '').localeCompare(b.filename || '');
+        return 0;
+      });
+      if (currentSortMode === 'time-desc') {
+        filtered.reverse();
       }
-      emptyState.style.display = 'none';
 
-      taskKeys.forEach(id => {
-        const task = tasks[id];
+      if (filtered.length === 0) {
+        emptyState.style.display = 'block';
+        if (allTaskKeys.length > 0) {
+          emptyState.querySelector('h3').textContent = '未找到相符的下載任務';
+          emptyState.querySelector('p').textContent = '嘗試清空搜尋條件或切換狀態/分類標籤';
+        } else {
+          emptyState.querySelector('h3').textContent = '目前尚無下載任務';
+          emptyState.querySelector('p').textContent = '點擊右上角「新增下載任務」體驗 IDM 級超速多線程下載';
+        }
+      } else {
+        emptyState.style.display = 'none';
+      }
+
+      // Hide or remove cards not in filtered list
+      const visibleIds = new Set(filtered.map(t => t.id));
+      container.querySelectorAll('.task-card').forEach(card => {
+        const id = card.id.replace('task-', '');
+        if (!visibleIds.has(id)) {
+          card.remove();
+        }
+      });
+
+      filtered.forEach(task => {
+        const id = task.id;
         let card = document.getElementById(`task-${id}`);
         if (!card) {
           card = document.createElement('div');
@@ -1620,6 +2069,9 @@
 
         const pct = (task.progress_ratio * 100).toFixed(1);
         const speedMB = ((task.speed_bps || 0) / (1024 * 1024)).toFixed(2);
+        const cat = getTaskCategory(task.filename, task.url);
+        const icon = getCategoryIcon(cat);
+
         let stateClass = 'status-queued';
         let stateText = 'Queued';
         if (task.state === 'Downloading') {
@@ -1664,10 +2116,31 @@
           }).join('');
         }
 
+        // Dynamic action buttons according to status
+        let actionsHtml = '';
+        if (task.state === 'Completed') {
+          actionsHtml = `
+            <button class="btn-primary" onclick="openFile('${id}')">📂 開啟檔案</button>
+            <button class="btn-secondary" onclick="openDir('${id}')">📁 開啟目錄</button>
+            <button class="btn-secondary" onclick="openHashModal('${id}', '${escapeHtml(task.filename)}')">🛡️ 雜湊校驗</button>
+            <button class="btn-danger" onclick="deleteTask('${id}')">🗑 刪除</button>
+          `;
+        } else if (task.state === 'Downloading') {
+          actionsHtml = `
+            <button class="btn-secondary" onclick="pauseTask('${id}')">⏸ 暫停</button>
+            <button class="btn-danger" onclick="deleteTask('${id}')">🗑 刪除</button>
+          `;
+        } else {
+          actionsHtml = `
+            <button class="btn-primary" onclick="resumeTask('${id}')">▶ 啟動/繼續</button>
+            <button class="btn-danger" onclick="deleteTask('${id}')">🗑 刪除</button>
+          `;
+        }
+
         card.innerHTML = `
           <div class="task-top">
             <div class="task-info">
-              <div class="file-icon">📦</div>
+              <div class="file-icon">${icon}</div>
               <div class="file-details">
                 <h3>${escapeHtml(task.filename)}</h3>
                 <div class="task-url" title="${escapeHtml(task.url)}">${escapeHtml(task.url)}</div>
@@ -1699,15 +2172,229 @@
           </div>
 
           <div class="task-actions">
-            ${task.state === 'Downloading'
-              ? `<button class="btn-secondary" onclick="pauseTask('${id}')">⏸ 暫停</button>`
-              : (task.state === 'Paused' || task.state === 'Queued'
-                  ? `<button class="btn-primary" onclick="resumeTask('${id}')">▶ 啟動/繼續</button>`
-                  : '')}
-            <button class="btn-danger" onclick="deleteTask('${id}')">🗑 刪除</button>
+            ${actionsHtml}
           </div>
         `;
       });
+    }
+
+    function onFilterChange() {
+      const searchInput = document.getElementById('taskSearchInput');
+      currentSearchKeyword = (searchInput ? searchInput.value : '').trim().toLowerCase();
+      const sortSelect = document.getElementById('taskSortSelect');
+      currentSortMode = sortSelect ? sortSelect.value : 'time-desc';
+      renderTasks();
+    }
+
+    function selectStatusTab(status) {
+      currentStatusFilter = status;
+      document.querySelectorAll('#statusTabsGroup .tab-chip').forEach(chip => {
+        if (chip.getAttribute('data-status') === status) {
+          chip.classList.add('active');
+        } else {
+          chip.classList.remove('active');
+        }
+      });
+      renderTasks();
+    }
+
+    function selectCategoryPill(cat) {
+      currentCategoryFilter = cat;
+      document.querySelectorAll('#categoryPillsRow .cat-pill').forEach(pill => {
+        if (pill.getAttribute('data-cat') === cat) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
+        }
+      });
+      renderTasks();
+    }
+
+    function toggleSoundChime() {
+      soundChimeEnabled = !soundChimeEnabled;
+      localStorage.setItem('dpls_sound_chime', soundChimeEnabled);
+      updateAutomationPills();
+      if (soundChimeEnabled) {
+        playCompletionDing();
+      }
+    }
+
+    function toggleAutoOpenFile() {
+      autoOpenEnabled = !autoOpenEnabled;
+      localStorage.setItem('dpls_auto_open', autoOpenEnabled);
+      updateAutomationPills();
+    }
+
+    function updateAutomationPills() {
+      const soundText = document.getElementById('soundChimeText');
+      const soundBtn = document.getElementById('toggleSoundChime');
+      if (soundText && soundBtn) {
+        soundText.textContent = `完成提示音: ${soundChimeEnabled ? '開' : '關'}`;
+        soundBtn.style.color = soundChimeEnabled ? 'var(--theme-accent)' : 'var(--text-muted)';
+        soundBtn.style.borderColor = soundChimeEnabled ? 'rgba(var(--theme-accent-rgb), 0.4)' : 'var(--border-color)';
+      }
+
+      const openText = document.getElementById('autoOpenText');
+      const openBtn = document.getElementById('toggleAutoOpen');
+      if (openText && openBtn) {
+        openText.textContent = `自動開啟: ${autoOpenEnabled ? '開' : '關'}`;
+        openBtn.style.color = autoOpenEnabled ? 'var(--theme-accent)' : 'var(--text-muted)';
+        openBtn.style.borderColor = autoOpenEnabled ? 'rgba(var(--theme-accent-rgb), 0.4)' : 'var(--border-color)';
+      }
+    }
+
+    function playCompletionDing() {
+      if (!soundChimeEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(1046.5, now);
+        gain1.gain.setValueAtTime(0.2, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.35);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1567.98, now + 0.08);
+        gain2.gain.setValueAtTime(0.25, now + 0.08);
+        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.08);
+        osc2.stop(now + 0.6);
+      } catch (e) {
+        console.debug('Audio note:', e);
+      }
+    }
+
+    async function pauseAllTasks() {
+      try {
+        await fetch(`${API_BASE}/api/pause_all`, { method: 'POST' });
+        await loadTasks();
+      } catch (e) {
+        alert('暫停任務失敗: ' + e);
+      }
+    }
+
+    async function resumeAllTasks() {
+      try {
+        await fetch(`${API_BASE}/api/resume_all`, { method: 'POST' });
+        await loadTasks();
+      } catch (e) {
+        alert('繼續任務失敗: ' + e);
+      }
+    }
+
+    async function clearCompletedTasks() {
+      try {
+        const res = await fetch(`${API_BASE}/api/clear_completed`, { method: 'POST' });
+        if (res.ok) {
+          Object.keys(tasks).forEach(id => {
+            if (tasks[id].state === 'Completed') {
+              delete tasks[id];
+              const el = document.getElementById(`task-${id}`);
+              if (el) el.remove();
+            }
+          });
+          await loadTasks();
+        }
+      } catch (e) {
+        alert('清除已完成任務失敗: ' + e);
+      }
+    }
+
+    async function openFile(id) {
+      try {
+        await fetch(`${API_BASE}/api/open/${id}`, { method: 'POST' });
+      } catch (e) {
+        console.error('Cannot open file:', e);
+      }
+    }
+
+    async function openDir(id) {
+      try {
+        await fetch(`${API_BASE}/api/open-dir/${id}`, { method: 'POST' });
+      } catch (e) {
+        console.error('Cannot open dir:', e);
+      }
+    }
+
+    let currentHashTaskId = null;
+
+    async function openHashModal(taskId, filename) {
+      currentHashTaskId = taskId;
+      const modal = document.getElementById('hashVerifierModal');
+      const filenameEl = document.getElementById('hashModalFilename');
+      const resultInput = document.getElementById('hashSha256Result');
+      const expectedInput = document.getElementById('hashExpectedInput');
+      const matchBox = document.getElementById('hashMatchResultBox');
+
+      filenameEl.textContent = `檔案: ${filename}`;
+      resultInput.value = '正在讀取檔案並運算 SHA-256 數位指紋...';
+      expectedInput.value = '';
+      matchBox.style.display = 'none';
+      modal.style.display = 'flex';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/task/${taskId}/hash`);
+        if (res.ok) {
+          const data = await res.json();
+          resultInput.value = data.sha256 || '運算失敗';
+          verifyHashMatch();
+        } else {
+          resultInput.value = '無法取得雜湊碼 (檔案可能已被移動或移除)';
+        }
+      } catch (e) {
+        resultInput.value = '伺服器連線錯誤: ' + e;
+      }
+    }
+
+    function closeHashModal() {
+      document.getElementById('hashVerifierModal').style.display = 'none';
+      currentHashTaskId = null;
+    }
+
+    function copyHashResult() {
+      const resultInput = document.getElementById('hashSha256Result');
+      if (resultInput && resultInput.value && !resultInput.value.includes('...')) {
+        navigator.clipboard.writeText(resultInput.value).then(() => {
+          alert('✅ 已成功複製 SHA-256 雜湊碼到剪貼簿！');
+        });
+      }
+    }
+
+    function verifyHashMatch() {
+      const calculated = document.getElementById('hashSha256Result').value.trim().toLowerCase();
+      const expected = document.getElementById('hashExpectedInput').value.trim().toLowerCase();
+      const matchBox = document.getElementById('hashMatchResultBox');
+
+      if (!expected || !calculated || calculated.includes('...')) {
+        matchBox.style.display = 'none';
+        return;
+      }
+
+      matchBox.style.display = 'block';
+      if (calculated === expected) {
+        matchBox.style.background = 'rgba(16, 185, 129, 0.15)';
+        matchBox.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+        matchBox.style.color = '#34d399';
+        matchBox.innerHTML = '✅ 雜湊完全相符！檔案完整無損，未被竄改。';
+      } else {
+        matchBox.style.background = 'rgba(244, 63, 94, 0.15)';
+        matchBox.style.border = '1px solid rgba(244, 63, 94, 0.4)';
+        matchBox.style.color = '#fb7185';
+        matchBox.innerHTML = '❌ 雜湊不符！檔案可能損壞或已被修改，請謹慎使用。';
+      }
     }
 
     function escapeHtml(str) {
@@ -2332,6 +3019,7 @@
       initWebSocket();
       loadQueueSettings();
       updateClipboardUI();
+      updateAutomationPills();
       setInterval(() => {
         updateGlobalStats();
         loadTasks();

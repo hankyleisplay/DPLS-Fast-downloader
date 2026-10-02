@@ -131,6 +131,53 @@ impl DownloadTask {
         })
     }
 
+    pub fn from_persisted(
+        id: String,
+        url: String,
+        filename: String,
+        output_path: PathBuf,
+        total_size: Option<u64>,
+        downloaded_bytes: u64,
+        state: TaskState,
+        connections: usize,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_http_client(None)?;
+        let output_dir = output_path
+            .parent()
+            .map(|p| p.to_path_buf())
+            .unwrap_or_else(|| PathBuf::from("."));
+        let (progress_tx, _) = broadcast::channel(128);
+        let mut meta = DownloadMetadata::new(
+            url.clone(),
+            filename.clone(),
+            total_size,
+            true,
+            None,
+            None,
+        );
+        if state == TaskState::Completed {
+            meta.completed = true;
+        }
+        let metadata = Arc::new(RwLock::new(meta));
+
+        Ok(Self {
+            id,
+            url,
+            output_dir,
+            custom_filename: Some(filename),
+            connections: connections.max(1),
+            metadata,
+            state: Arc::new(RwLock::new(state)),
+            downloaded_bytes: Arc::new(AtomicU64::new(downloaded_bytes)),
+            speed_bps: Arc::new(AtomicU64::new(0)),
+            is_paused: Arc::new(AtomicBool::new(false)),
+            progress_tx,
+            scheduled_at: Arc::new(RwLock::new(None)),
+            client,
+            final_output_path: Arc::new(RwLock::new(output_path)),
+        })
+    }
+
     pub async fn get_meta_path(&self) -> PathBuf {
         let path = self.final_output_path.read().await;
         PathBuf::from(format!("{}.dpls.meta", path.display()))
