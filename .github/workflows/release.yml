@@ -97,3 +97,27 @@ jobs:
         with:
           name: dpls-cli-${{ matrix.platform }}
           path: artifacts/*
+
+      - name: Package Windows Zip & Upload to Release
+        if: matrix.platform == 'windows'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p win_pkg/scripts win_pkg/src-tauri/icons
+          cp target/release/dpls.exe win_pkg/ || true
+          cp -rf extension win_pkg/
+          cp -rf scripts/* win_pkg/scripts/
+          cp install.bat install.ps1 uninstall.bat uninstall.ps1 update.bat update.ps1 win_pkg/
+          if [ -f src-tauri/icons/icon.ico ]; then cp src-tauri/icons/icon.ico win_pkg/src-tauri/icons/; fi
+          cd win_pkg
+          7z a ../dpls-fast-windows-x86_64.zip ./*
+          cd ..
+          gh release upload "${{ github.ref_name }}" dpls-fast-windows-x86_64.zip target/release/dpls.exe scripts/windows-installer.ps1 scripts/windows-uninstaller.ps1 scripts/windows-updater.ps1 --clobber || true
+
+      - name: Upload CLI to Release
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.ref_name }}" artifacts/* --clobber || true

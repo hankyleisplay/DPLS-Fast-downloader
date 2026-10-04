@@ -48,6 +48,7 @@ pub async fn start_web_server(
         .route("/api/open-dir/:id", post(open_dir_handler))
         .route("/api/settings/autostart", get(get_autostart_handler).post(set_autostart_handler))
         .route("/api/settings/queue", get(get_queue_settings_handler).post(set_queue_settings_handler))
+        .route("/api/system/clipboard", get(system_clipboard_handler))
         .route("/api/task/:id", delete(delete_task_handler))
         .route("/ws", get(ws_handler))
         .layer(CorsLayer::permissive())
@@ -68,8 +69,20 @@ pub async fn start_web_server(
     Ok(())
 }
 
-async fn index_handler() -> Html<&'static str> {
-    Html(INDEX_HTML)
+async fn index_handler() -> Html<String> {
+    let candidates = [
+        std::path::PathBuf::from("web/index.html"),
+        std::env::current_exe().ok().and_then(|p| p.parent().map(|dir| dir.join("web/index.html"))).unwrap_or_default(),
+        std::env::current_exe().ok().and_then(|p| p.parent().map(|dir| dir.join("../web/index.html"))).unwrap_or_default(),
+    ];
+    for c in &candidates {
+        if c.exists() {
+            if let Ok(content) = std::fs::read_to_string(c) {
+                return Html(content);
+            }
+        }
+    }
+    Html(INDEX_HTML.to_string())
 }
 
 async fn add_pna_header(mut response: Response) -> Response {
@@ -272,14 +285,21 @@ async fn open_file_handler(
     if let Some(snap) = state.manager.get_task_snapshot(&id).await {
         let path = std::path::Path::new(&snap.output_path);
         if path.exists() {
-            let _ = open::that_detached(path);
-            StatusCode::OK
-        } else {
-            StatusCode::NOT_FOUND
+            #[cfg(target_os = "windows")]
+            {
+                let _ = std::process::Command::new("explorer")
+                    .arg(path)
+                    .spawn();
+                return StatusCode::OK;
+            }
+            #[cfg(not(target_os = "windows"))]
+            {
+                let _ = open::that_detached(path);
+                return StatusCode::OK;
+            }
         }
-    } else {
-        StatusCode::NOT_FOUND
     }
+    StatusCode::NOT_FOUND
 }
 
 async fn open_dir_handler(
@@ -288,20 +308,37 @@ async fn open_dir_handler(
 ) -> impl IntoResponse {
     if let Some(snap) = state.manager.get_task_snapshot(&id).await {
         let path = std::path::Path::new(&snap.output_path);
-        let dir = if path.is_dir() {
-            path
-        } else {
-            path.parent().unwrap_or(path)
-        };
-        if dir.exists() {
-            let _ = open::that_detached(dir);
-            StatusCode::OK
-        } else {
-            StatusCode::NOT_FOUND
+        #[cfg(target_os = "windows")]
+        {
+            if path.exists() {
+                let _ = std::process::Command::new("explorer")
+                    .arg(format!("/select,{}", path.display()))
+                    .spawn();
+                return StatusCode::OK;
+            } else {
+                let dir = if path.is_dir() { path } else { path.parent().unwrap_or(path) };
+                if dir.exists() {
+                    let _ = std::process::Command::new("explorer")
+                        .arg(dir.display().to_string())
+                        .spawn();
+                    return StatusCode::OK;
+                }
+            }
         }
-    } else {
-        StatusCode::NOT_FOUND
+        #[cfg(not(target_os = "windows"))]
+        {
+            let dir = if path.is_dir() {
+                path
+            } else {
+                path.parent().unwrap_or(path)
+            };
+            if dir.exists() {
+                let _ = open::that_detached(dir);
+                return StatusCode::OK;
+            }
+        }
     }
+    StatusCode::NOT_FOUND
 }
 
 #[derive(Debug, Serialize)]
@@ -353,9 +390,9 @@ async fn pick_dir_handler() -> Json<serde_json::Value> {
 
         #[cfg(target_os = "windows")]
         {
-            let ps_script = "[System.Reflection.Assembly]::LoadWithPartialName('System.windows.forms')|Out-Null;$f=New-Object System.Windows.Forms.FolderBrowserDialog;$f.Description='選擇下載儲存路徑';if($f.ShowDialog() -eq 'OK'){$f.SelectedPath}";
+            let ps_script = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')|Out-Null;$f=New-Object System.Windows.Forms.FolderBrowserDialog;$f.Description='選擇下載儲存路徑';$f.ShowNewFolderButton=$true;$t=New-Object System.Windows.Forms.Form;$t.TopMost=$true;$t.TopLevel=$true;if($f.ShowDialog($t)-eq [System.Windows.Forms.DialogResult]::OK){Write-Output $f.SelectedPath};$t.Dispose();";
             if let Ok(output) = std::process::Command::new("powershell")
-                .args(["-NoProfile", "-Command", ps_script])
+                .args(["-NoProfile", "-Sta", "-Command", ps_script])
                 .output()
             {
                 if output.status.success() {
@@ -392,6 +429,46 @@ async fn pick_dir_handler() -> Json<serde_json::Value> {
         Some(p) => Json(serde_json::json!({ "path": p, "canceled": false })),
         None => Json(serde_json::json!({ "path": null, "canceled": true })),
     }
+}
+
+async fn system_clipboard_handler() -> Json<serde_json::Value> {
+    let text = tokio::task::spawn_blocking(|| -> String {
+        #[cfg(target_os = "windows")]
+        {
+            if let Ok(output) = std::process::Command::new("powershell")
+                .args(["-NoProfile", "-Sta", "-Command", "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Clipboard"])
+                .output()
+            {
+                if output.status.success() {
+                    return String::from_utf8_lossy(&output.stdout).trim().to_string();
+                }
+            }
+        }
+        #[cfg(target_os = "linux")]
+        {
+            if let Ok(output) = std::process::Command::new("xclip").args(["-selection", "clipboard", "-o"]).output() {
+                if output.status.success() {
+                    return String::from_utf8_lossy(&output.stdout).trim().to_string();
+                }
+            }
+            if let Ok(output) = std::process::Command::new("wl-paste").output() {
+                if output.status.success() {
+                    return String::from_utf8_lossy(&output.stdout).trim().to_string();
+                }
+            }
+        }
+        #[cfg(target_os = "macos")]
+        {
+            if let Ok(output) = std::process::Command::new("pbpaste").output() {
+                if output.status.success() {
+                    return String::from_utf8_lossy(&output.stdout).trim().to_string();
+                }
+            }
+        }
+        String::new()
+    }).await.unwrap_or_default();
+
+    Json(serde_json::json!({ "text": text }))
 }
 
 async fn task_hash_handler(
@@ -521,8 +598,17 @@ fn check_autostart_status() -> (bool, &'static str) {
                 .join("Startup")
                 .join("DPLS-Fast.lnk")
         });
-        let enabled = startup_path.map(|p| p.exists()).unwrap_or(false);
-        (enabled, "windows")
+        let shortcut_exists = startup_path.map(|p| p.exists()).unwrap_or(false);
+        let reg_exists = std::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                "if (Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run' -Name 'DPLSFast' -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }",
+            ])
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+        (shortcut_exists || reg_exists, "windows")
     }
     #[cfg(target_os = "macos")]
     {
@@ -561,13 +647,43 @@ fn set_autostart_status(enable: bool) -> bool {
     }
     #[cfg(target_os = "windows")]
     {
-        let cmd = if enable {
-            r#"New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "DPLSFast" -Value "dpls-gui" -PropertyType String -Force"#
+        let target_exe = if let Ok(current_exe) = std::env::current_exe() {
+            current_exe.to_string_lossy().to_string()
+        } else if let Some(local_app_data) = dirs::data_local_dir() {
+            local_app_data
+                .join("Programs")
+                .join("DPLSFast")
+                .join("dpls-gui.exe")
+                .to_string_lossy()
+                .to_string()
         } else {
-            r#"Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "DPLSFast" -ErrorAction SilentlyContinue"#
+            "dpls-gui.exe".to_string()
         };
+
+        let cmd = if enable {
+            format!(
+                r#"Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "DPLSFast" -Value '"{}"' -Force"#,
+                target_exe
+            )
+        } else {
+            r#"Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "DPLSFast" -ErrorAction SilentlyContinue"#.to_string()
+        };
+
+        if !enable {
+            if let Some(startup_path) = dirs::data_dir().map(|d| {
+                d.join("Microsoft")
+                    .join("Windows")
+                    .join("Start Menu")
+                    .join("Programs")
+                    .join("Startup")
+                    .join("DPLS-Fast.lnk")
+            }) {
+                let _ = std::fs::remove_file(startup_path);
+            }
+        }
+
         std::process::Command::new("powershell")
-            .args(["-NoProfile", "-Command", cmd])
+            .args(["-NoProfile", "-Command", &cmd])
             .status()
             .map(|s| s.success())
             .unwrap_or(false)

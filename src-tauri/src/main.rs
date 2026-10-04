@@ -37,6 +37,11 @@ fn main() {
         .setup(|app| {
             let handle = app.handle();
 
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+
             // Create tray menu
             let show_i = MenuItem::with_id(handle, "show", "顯示主視窗", true, None::<&str>)?;
             let hide_i = MenuItem::with_id(handle, "hide", "最小化至托盤", true, None::<&str>)?;
@@ -44,10 +49,15 @@ fn main() {
 
             let menu = Menu::with_items(handle, &[&show_i, &hide_i, &quit_i])?;
 
-            let _tray = TrayIconBuilder::new()
-                .icon(app.default_window_icon().unwrap().clone())
+            let mut tray_builder = TrayIconBuilder::new()
                 .menu(&menu)
-                .show_menu_on_left_click(false)
+                .show_menu_on_left_click(false);
+
+            if let Some(icon) = app.default_window_icon() {
+                tray_builder = tray_builder.icon(icon.clone());
+            }
+
+            let _tray = tray_builder
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => {
                         if let Some(window) = app.get_webview_window("main") {

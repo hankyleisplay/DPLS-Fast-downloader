@@ -1366,6 +1366,11 @@
         <span id="clipboardIcon">📋</span> <span>監聽剪貼簿: <b id="clipboardStatusText" style="color: #34d399;">開啟</b></span>
       </button>
 
+      <!-- Autostart Toggle -->
+      <button class="btn-secondary toggle-pill" id="btnAutostartToggle" onclick="toggleAutostartSetting()" title="開機自動常駐系統背景">
+        <span id="autostartIcon">⚡</span> <span>開機自啟: <b id="autostartStatusText" style="color: #34d399;">偵測中</b></span>
+      </button>
+
       <!-- Queue Concurrency Setting -->
       <div class="queue-setting-pill" title="設定同時最大下載任務數">
         <span>⚡ 並發佇列:</span>
@@ -1672,7 +1677,14 @@
         <label>儲存目標資料夾</label>
         <div style="display: flex; gap: 8px;">
           <input type="text" id="batchOutputDir" class="form-control" placeholder="留空使用預設 Downloads 目錄" style="flex: 1;">
-          <button type="button" class="btn-secondary" style="white-space: nowrap;" onclick="browseBatchDir()">📂 瀏覽...</button>
+          <button type="button" class="btn-secondary" style="white-space: nowrap;" id="btnBrowseBatch" onclick="browseBatchDir(this)">📂 瀏覽...</button>
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applyBatchSystemDir('downloads')">📥 下載</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applyBatchSystemDir('desktop')">🖥️ 桌面</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applyBatchSystemDir('documents')">📄 文件</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applyBatchSystemDir('videos')">🎬 影片</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px;" onclick="applyBatchSystemDir('music')">🎵 音樂</button>
         </div>
       </div>
 
@@ -1860,7 +1872,7 @@
     const API_BASE = isDirectWeb ? '' : 'http://127.0.0.1:6800';
 
     function initWebSocket() {
-      const wsUri = isDirectWeb
+      const wsUri = (window.location.port === '6800')
         ? ((window.location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + window.location.host + '/ws')
         : 'ws://127.0.0.1:6800/ws';
       ws = new WebSocket(wsUri);
@@ -2314,18 +2326,36 @@
     }
 
     async function openFile(id) {
+      const task = tasks[id];
+      const pathParam = task && task.output_path ? `?path=${encodeURIComponent(task.output_path)}` : '';
       try {
-        await fetch(`${API_BASE}/api/open/${id}`, { method: 'POST' });
+        let res = await fetch(`http://127.0.0.1:6805/api/open/${id}${pathParam}`, { method: 'POST' }).catch(() => null);
+        if (!res || !res.ok) {
+          res = await fetch(`${API_BASE}/api/open/${id}${pathParam}`, { method: 'POST' });
+        }
+        if (!res.ok) {
+          alert('⚠️ 無法開啟檔案：檔案可能已被移動、刪除或已被其他程式佔用。');
+        }
       } catch (e) {
-        console.error('Cannot open file:', e);
+        alert('⚠️ 開啟檔案時發生連線錯誤: ' + e);
       }
     }
 
     async function openDir(id) {
+      const task = tasks[id];
+      const pathParam = task && task.output_path ? `?path=${encodeURIComponent(task.output_path)}` : '';
       try {
-        await fetch(`${API_BASE}/api/open-dir/${id}`, { method: 'POST' });
+        const compRes = await fetch(`http://127.0.0.1:6805/api/open-dir/${id}${pathParam}`, { method: 'POST' });
+        if (compRes.ok) return;
+      } catch (_) {}
+
+      try {
+        const res = await fetch(`${API_BASE}/api/open-dir/${id}${pathParam}`, { method: 'POST' });
+        if (!res.ok) {
+          alert('⚠️ 無法開啟所在資料夾：檔案或目錄可能已被移動或移除。');
+        }
       } catch (e) {
-        console.error('Cannot open dir:', e);
+        alert('⚠️ 開啟資料夾時發生連線錯誤: ' + e);
       }
     }
 
@@ -2367,10 +2397,36 @@
     function copyHashResult() {
       const resultInput = document.getElementById('hashSha256Result');
       if (resultInput && resultInput.value && !resultInput.value.includes('...')) {
-        navigator.clipboard.writeText(resultInput.value).then(() => {
-          alert('✅ 已成功複製 SHA-256 雜湊碼到剪貼簿！');
-        });
+        const val = resultInput.value.trim();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(val).then(() => {
+            alert('✅ 已成功複製 SHA-256 數位指紋到剪貼簿！');
+          }).catch(() => fallbackCopyText(val));
+        } else {
+          fallbackCopyText(val);
+        }
       }
+    }
+
+    function fallbackCopyText(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          alert('✅ 已成功複製 SHA-256 數位指紋到剪貼簿！');
+        } else {
+          alert('⚠️ 瀏覽器安全性限制，請手動選取文字複製。');
+        }
+      } catch (err) {
+        alert('⚠️ 複製失敗: ' + err);
+      }
+      document.body.removeChild(ta);
     }
 
     function verifyHashMatch() {
@@ -2447,17 +2503,35 @@
       }
     }
 
-    async function browseModalDir() {
+    async function browseModalDir(btnEl) {
+      const btn = btnEl || document.getElementById('btnBrowseModal');
+      const originalText = btn ? btn.innerHTML : '📂 瀏覽...';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ 選擇中...';
+      }
       try {
-        const res = await fetch(`${API_BASE}/api/dialog/pick-dir`, { method: 'POST' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.path && !data.canceled) {
-            document.getElementById('inputOutputDir').value = data.path;
-          }
+        let data = null;
+        try {
+          const compRes = await fetch('http://127.0.0.1:6805/api/dialog/pick-dir', { method: 'POST' });
+          if (compRes.ok) data = await compRes.json();
+        } catch (_) {}
+
+        if (!data) {
+          const res = await fetch(`${API_BASE}/api/dialog/pick-dir`, { method: 'POST' });
+          if (res.ok) data = await res.json();
+        }
+
+        if (data && data.path && !data.canceled) {
+          document.getElementById('inputOutputDir').value = data.path;
         }
       } catch (e) {
         alert('無法呼叫系統資料夾選擇視窗。');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
       }
     }
 
@@ -2629,17 +2703,47 @@
       updateBatchPreview();
     }
 
-    async function browseBatchDir() {
+    async function browseBatchDir(btnEl) {
+      const btn = btnEl || document.getElementById('btnBrowseBatch');
+      const originalText = btn ? btn.innerHTML : '📂 瀏覽...';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ 選擇中...';
+      }
       try {
-        const res = await fetch(`${API_BASE}/api/dialog/pick-dir`, { method: 'POST' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.path && !data.canceled) {
-            document.getElementById('batchOutputDir').value = data.path;
-          }
+        let data = null;
+        try {
+          const compRes = await fetch('http://127.0.0.1:6805/api/dialog/pick-dir', { method: 'POST' });
+          if (compRes.ok) data = await compRes.json();
+        } catch (_) {}
+
+        if (!data) {
+          const res = await fetch(`${API_BASE}/api/dialog/pick-dir`, { method: 'POST' });
+          if (res.ok) data = await res.json();
+        }
+
+        if (data && data.path && !data.canceled) {
+          document.getElementById('batchOutputDir').value = data.path;
         }
       } catch (e) {
         alert('無法呼叫系統資料夾選擇視窗。');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
+    }
+
+    function applyBatchSystemDir(type) {
+      if (systemDirsCache && systemDirsCache[type]) {
+        document.getElementById('batchOutputDir').value = systemDirsCache[type];
+      } else {
+        applySystemDir(type).then(() => {
+          if (systemDirsCache && systemDirsCache[type]) {
+            document.getElementById('batchOutputDir').value = systemDirsCache[type];
+          }
+        });
       }
     }
 
@@ -2717,6 +2821,56 @@
     }
 
     // ==========================================
+    // Autostart Settings
+    // ==========================================
+    let autostartEnabled = false;
+    async function loadAutostartSetting() {
+      try {
+        const res = await fetch(`${API_BASE}/api/settings/autostart`);
+        if (res.ok) {
+          const data = await res.json();
+          autostartEnabled = !!data.enabled;
+          updateAutostartUI();
+        }
+      } catch (e) {}
+    }
+
+    async function toggleAutostartSetting() {
+      const nextState = !autostartEnabled;
+      const btn = document.getElementById('btnAutostartToggle');
+      if (btn) btn.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/api/settings/autostart`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: nextState })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          autostartEnabled = !!data.enabled;
+          updateAutostartUI();
+        }
+      } catch (e) {
+        alert('切換開機自啟動設定失敗: ' + e);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function updateAutostartUI() {
+      const text = document.getElementById('autostartStatusText');
+      const btn = document.getElementById('btnAutostartToggle');
+      if (text) {
+        text.textContent = autostartEnabled ? '開啟' : '關閉';
+        text.style.color = autostartEnabled ? '#34d399' : '#8b949e';
+      }
+      if (btn) {
+        btn.style.color = autostartEnabled ? 'var(--theme-accent)' : 'var(--text-muted)';
+        btn.style.borderColor = autostartEnabled ? 'rgba(var(--theme-accent-rgb), 0.4)' : 'var(--border-color)';
+      }
+    }
+
+    // ==========================================
     // Clipboard Monitoring Functions
     // ==========================================
     let clipboardMonitorEnabled = localStorage.getItem('dpls_clipboard_monitor') !== 'false';
@@ -2760,15 +2914,33 @@
     async function checkClipboardForDownload() {
       if (!clipboardMonitorEnabled) return;
       if (!document.hasFocus()) return;
+      let text = '';
       try {
-        const text = await navigator.clipboard.readText();
-        if (!text || text.trim() === lastCopiedUrl) return;
-        const url = text.trim();
-        if (isValidDownloadUrl(url)) {
-          lastCopiedUrl = url;
-          showClipboardToast(url);
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          text = await navigator.clipboard.readText();
         }
       } catch (e) {}
+
+      // Fallback to backend system clipboard API if navigator.clipboard is denied or empty
+      if (!text) {
+        try {
+          let res = await fetch('http://127.0.0.1:6805/api/system/clipboard').catch(() => null);
+          if (!res || !res.ok) {
+            res = await fetch(`${API_BASE}/api/system/clipboard`);
+          }
+          if (res && res.ok) {
+            const data = await res.json();
+            text = data.text || '';
+          }
+        } catch (e) {}
+      }
+
+      if (!text || text.trim() === lastCopiedUrl) return;
+      const url = text.trim();
+      if (isValidDownloadUrl(url)) {
+        lastCopiedUrl = url;
+        showClipboardToast(url);
+      }
     }
 
     function showClipboardToast(url) {
@@ -3018,6 +3190,7 @@
       loadTasks();
       initWebSocket();
       loadQueueSettings();
+      loadAutostartSetting();
       updateClipboardUI();
       updateAutomationPills();
       setInterval(() => {

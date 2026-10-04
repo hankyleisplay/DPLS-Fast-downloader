@@ -131,8 +131,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.storage.local.set({ extensions: exts });
   });
 
-  btnOpen.addEventListener('click', () => {
-    chrome.tabs.create({ url: config.serverUrl });
+  btnOpen.addEventListener('click', async () => {
+    let target = config.serverUrl;
+    try {
+      const chk = await fetch('http://127.0.0.1:6805/', { method: 'HEAD' });
+      if (chk.ok || chk.status === 200 || chk.status === 304) {
+        target = 'http://127.0.0.1:6805/';
+      }
+    } catch (_) {}
+    chrome.tabs.create({ url: target });
   });
 
   // Check live connection & stats

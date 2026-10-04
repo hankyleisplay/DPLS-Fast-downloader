@@ -9,13 +9,16 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "⚡ DPLS-Fast | 極速下載器",
+        "url": "index.html",
         "width": 1260,
         "height": 840,
         "minWidth": 960,
         "minHeight": 650,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "visible": true
       }
     ],
     "security": {

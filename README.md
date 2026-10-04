@@ -42,9 +42,10 @@
 ## 📦 發行套件一覽 (Release Packages)
 
 發行套件存放於 `dist/` 目錄：
-- `dist/dpls-fast-extension-v1.2.zip`：瀏覽器擴充功能（Chrome / Edge / Brave / 支援 Chromium 系列）
+- `dist/dpls-fast-windows-x86_64.zip`：Windows 完整安裝包（含執行檔、`install.bat`、擴充功能與開機自啟）
 - `dist/dpls-fast-linux-x86_64.tar.gz`：Linux 完整安裝包（含 `dpls`、`dpls-gui`、`install.sh`、`uninstall.sh`）
-- `dist/windows-installer.ps1`：Windows 一鍵安裝與開機自啟設定腳本
+- `dist/dpls-fast-extension-v1.3.zip`：瀏覽器擴充功能（Chrome / Edge / Brave / 支援 Chromium 系列）
+- `dist/install.bat` / `dist/windows-installer.ps1`：Windows 一鍵自動化安裝腳本
 - `dist/windows-uninstaller.ps1`：Windows 完整移除腳本
 
 ---
@@ -75,24 +76,33 @@
 
 ---
 
-### 🪟 Windows 安裝與更新
+### 🪟 Windows 一鍵安裝與更新
 
-以 PowerShell 執行安裝腳本：
+**最簡單方式**：直接雙擊專案目錄下的 `install.bat`（或以 PowerShell 執行）：
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\windows-installer.ps1
+# 專案目錄或發行包目錄直接執行：
+.\install.bat
+# 或使用 PowerShell：
+powershell -ExecutionPolicy Bypass -File install.ps1
 ```
-- 部署至 `%LOCALAPPDATA%\Programs\DPLSFast`
-- 建立開始功能表與桌面捷徑
+- 自動安裝至 `%LOCALAPPDATA%\Programs\DPLSFast`
+- 自動配置使用者 `PATH` 環境變數，可在終端隨處使用 `dpls` 命令
+- 自動建立開始功能表與桌面快捷圖示
 - 註冊開機自啟動登錄機碼 (`HKCU:\...\Run`)
+- 自動啟動背景常駐服務
 
-若需執行熱更新：
+若需執行系統熱更新：
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\windows-updater.ps1
+.\update.bat
+# 或
+powershell -ExecutionPolicy Bypass -File update.ps1
 ```
 
 若需移除：
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\windows-uninstaller.ps1
+.\uninstall.bat
+# 或
+powershell -ExecutionPolicy Bypass -File uninstall.ps1
 ```
 
 ---

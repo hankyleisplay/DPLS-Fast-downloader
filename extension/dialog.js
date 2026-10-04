@@ -347,13 +347,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnBrowseIcon) btnBrowseIcon.textContent = '⏳';
     if (btnBrowseText) btnBrowseText.textContent = t('btn_browsing');
     try {
-      const res = await fetch(`${config.serverUrl}/api/dialog/pick-dir`, { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.path && !data.canceled) {
-          inputOutputDir.value = data.path;
-          document.querySelectorAll('.path-chip').forEach(c => c.classList.remove('active'));
-        }
+      let data = null;
+      try {
+        const cRes = await fetch('http://127.0.0.1:6805/api/dialog/pick-dir', { method: 'POST' });
+        if (cRes.ok) data = await cRes.json();
+      } catch (_) {}
+
+      if (!data) {
+        const res = await fetch(`${config.serverUrl}/api/dialog/pick-dir`, { method: 'POST' });
+        if (res.ok) data = await res.json();
+      }
+
+      if (data && data.path && !data.canceled) {
+        inputOutputDir.value = data.path;
+        document.querySelectorAll('.path-chip').forEach(c => c.classList.remove('active'));
       }
     } catch (e) {
       alert(t('browse_error') || '無法呼叫系統資料夾選擇視窗，請確認後端服務運行中。');
@@ -917,16 +924,84 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  async function openTaskDir(taskId) {
+    if (!taskId) return;
+    let outPath = '';
+    if (inputOutputDir.value && inputFilename.value) {
+      const sep = inputOutputDir.value.includes('\\') ? '\\' : '/';
+      outPath = inputOutputDir.value.replace(/[\\\/]+$/, '') + sep + inputFilename.value;
+    }
+    const pathParam = outPath ? `?path=${encodeURIComponent(outPath)}` : '';
+
+    const origText = btnDlOpenDir ? btnDlOpenDir.textContent : '';
+    if (btnDlOpenDir) btnDlOpenDir.textContent = '⏳ 開啟中...';
+
+    try {
+      // 1. Try companion on port 6805 first (Windows native Explorer selection)
+      try {
+        const cRes = await fetch(`http://127.0.0.1:6805/api/open-dir/${taskId}${pathParam}`, { method: 'POST' });
+        if (cRes.ok) return true;
+      } catch (_) {}
+
+      // 2. Fallback to config.serverUrl (6800 or Linux/macOS)
+      const res = await fetch(`${config.serverUrl}/api/open-dir/${taskId}${pathParam}`, { method: 'POST' });
+      if (!res.ok) {
+        alert(t('error_open_dir') || '⚠️ 無法開啟所在目錄：檔案或目錄可能已被移動。');
+        return false;
+      }
+      return true;
+    } catch (err) {
+      alert((t('error_open_dir') || '⚠️ 開啟所在目錄時發生錯誤：') + err);
+      return false;
+    } finally {
+      if (btnDlOpenDir && origText) btnDlOpenDir.textContent = origText;
+    }
+  }
+
+  async function openTaskFile(taskId) {
+    if (!taskId) return;
+    let outPath = '';
+    if (inputOutputDir.value && inputFilename.value) {
+      const sep = inputOutputDir.value.includes('\\') ? '\\' : '/';
+      outPath = inputOutputDir.value.replace(/[\\\/]+$/, '') + sep + inputFilename.value;
+    }
+    const pathParam = outPath ? `?path=${encodeURIComponent(outPath)}` : '';
+
+    const origText = btnDlOpenFile ? btnDlOpenFile.textContent : '';
+    if (btnDlOpenFile) btnDlOpenFile.textContent = '⏳ 開啟中...';
+
+    try {
+      // 1. Try companion on port 6805 first (Windows native ShellExecute)
+      try {
+        const cRes = await fetch(`http://127.0.0.1:6805/api/open/${taskId}${pathParam}`, { method: 'POST' });
+        if (cRes.ok) return true;
+      } catch (_) {}
+
+      // 2. Fallback to config.serverUrl (6800 or Linux/macOS)
+      const res = await fetch(`${config.serverUrl}/api/open/${taskId}${pathParam}`, { method: 'POST' });
+      if (!res.ok) {
+        alert(t('error_open_file') || '⚠️ 無法開啟檔案：檔案可能已被移動或正在被其他程式佔用。');
+        return false;
+      }
+      return true;
+    } catch (err) {
+      alert((t('error_open_file') || '⚠️ 開啟檔案時發生錯誤：') + err);
+      return false;
+    } finally {
+      if (btnDlOpenFile && origText) btnDlOpenFile.textContent = origText;
+    }
+  }
+
   let postActionsTriggered = false;
   async function handlePostTransferActions(taskId) {
     if (postActionsTriggered) return;
     postActionsTriggered = true;
 
     if (chkAutoOpenFile.checked) {
-      fetch(`${config.serverUrl}/api/open/${taskId}`, { method: 'POST' });
+      openTaskFile(taskId);
     }
     if (chkAutoOpenDir.checked) {
-      fetch(`${config.serverUrl}/api/open-dir/${taskId}`, { method: 'POST' });
+      openTaskDir(taskId);
     }
     if (chkAutoClose.checked) {
       setTimeout(() => {
@@ -962,13 +1037,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.close();
   });
 
-  btnDlOpenFile.addEventListener('click', async () => {
-    if (!currentTaskId) return;
-    await fetch(`${config.serverUrl}/api/open/${currentTaskId}`, { method: 'POST' });
+  btnDlOpenFile.addEventListener('click', () => {
+    if (currentTaskId) openTaskFile(currentTaskId);
   });
 
-  btnDlOpenDir.addEventListener('click', async () => {
-    if (!currentTaskId) return;
-    await fetch(`${config.serverUrl}/api/open-dir/${currentTaskId}`, { method: 'POST' });
+  btnDlOpenDir.addEventListener('click', () => {
+    if (currentTaskId) openTaskDir(currentTaskId);
   });
 });
